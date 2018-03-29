@@ -53,8 +53,8 @@ layout_forceatlas2 <- function(G, ew_influence = 1, kgrav = 1, iter = 1000, prev
     avg_displ <- numeric(iter)
     max_displ <- numeric(iter)
 
-    message(system.time(layout_forceatlas2Cpp(lay, F_att, mass, V(G)$size, edge_list, avg_displ,
-                                            kgrav,  iter, prevent.overlap, fixed, max_displ, stopping_tolerance, barnes_hut)))
+    layout_forceatlas2Cpp(lay, F_att, mass, V(G)$size, edge_list, avg_displ,
+                            kgrav, iter, prevent.overlap, fixed, max_displ, stopping_tolerance, barnes_hut)
 
     return(list(lay = lay, avg_displ = avg_displ, max_displ = max_displ))
 }

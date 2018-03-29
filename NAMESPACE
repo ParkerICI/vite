@@ -2,6 +2,7 @@
 
 export(get_unsupervised_graph)
 export(get_unsupervised_graph_from_files)
+import(Rcpp)
 importFrom(igraph,E)
 importFrom(igraph,V)
 useDynLib(scgraphs)

@@ -341,7 +341,7 @@ get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, m
     if(use.basename && !is.null(metadata.tab) && !is.null(metadata.filename.col))
         metadata.tab[, metadata.filename.col] <- basename(metadata.tab[, metadata.filename.col])
 
-    for(f in input.files) {
+    for(f in files.list) {
         temp <- read.table(file.path(working.dir, f),
                            header = T, sep = "\t", check.names = F, quote = "", stringsAsFactors = F)
         temp <- temp[, common.cols]

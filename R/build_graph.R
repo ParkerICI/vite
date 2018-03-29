@@ -336,7 +336,7 @@ get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, m
 
     tab <- NULL
     ret <- list(graphs = list())
-    common.cols <- get_common_columns(input.files)
+    common.cols <- get_common_columns(files.list)
 
     if(use.basename && !is.null(metadata.tab) && !is.null(metadata.file.name.col))
         metadata.tab[, metadata.filename.col] <- basename(metadata.tab[, metadata.filename.col])

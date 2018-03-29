@@ -29,6 +29,9 @@ in \code{metadata.tab} will be based on the \code{basename} only}
   \item{filtering.threshold}{The threshold used to filter edges in the graph}
 }}
 }
+\value{
+See the return value of \code{get_unsupervised_graph}
+}
 \description{
 This function is similar to \code{get_unsupervised_graph}, except that the input in this case is a list of file names containing
 the vertices of the graph. Each file should be a tab-separated table of nodes, similar to the \code{tab} input of

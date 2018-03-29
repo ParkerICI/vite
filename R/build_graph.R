@@ -291,7 +291,6 @@ process_data <- function(tab, G.attractors = NULL, tab.attractors = NULL, col.na
 #'   is contained in the \code{community_id} vertex attribute of the resulting graph
 #'
 #' @export
-
 get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.name) {
     G <- build_graph(tab, col.names, filtering_T = filtering.threshold)
 
@@ -333,7 +332,6 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.n
 #' @return See the return value of \code{get_unsupervised_graph}
 #'
 #' @export
-
 get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, metadata.filename.col = NULL, use.basename = T, ...) {
 
     tab <- NULL
@@ -355,6 +353,7 @@ get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, m
     }
 
     G <- get_unsupervised_graph(tab, ...)
+    return(G)
 
 }
 

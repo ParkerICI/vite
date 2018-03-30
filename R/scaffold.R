@@ -1,3 +1,51 @@
+downsample_by <- function(tab, col.name, size)
+{
+    print(sprintf("Downsampling to %d events", size))
+    return(ddply(tab, col.name, function(x, size)
+    {
+        #s <- min(c(size, nrow(x)))
+        if(nrow(x) <= size)
+            return(x)
+        else
+            return(x[sample(1:nrow(x), size),])
+    }, size = size))
+}
+
+
+
+
+#... additional named arguments for read.FCS
+load_attractors <- function(files.list, asinh.cofactor, transform.data = T, ...) {
+    res <- NULL
+    for(f in files.list) {
+        population <- tail(strsplit(f, "_")[[1]], n = 1)
+        fcs <- flowCore::read.FCS(f, ...)
+        tab <- scfeatures::convert_fcs(fcs, asinh.cofactor, transform.data, clip.at.zero = T)
+
+        tab <- cbind(tab, population, stringsAsFactors = F, check.names = F)
+        res <- rbind(res, tab)
+    }
+
+    downsampled.data <- downsample_by(res, "population", 1000)
+    names(downsampled.data) <- gsub("population", "cellType", names(downsampled.data))
+
+    #Change cellType to be numbers
+    k <- unique(res$population)
+    k <- data.frame(population = k, cellType = seq_along(k), stringsAsFactors = F)
+    res <- merge(res, k)
+    res <- res[, grep("population", names(res), invert = T)]
+    res <- ddply(res, ~cellType, colwise(median))
+    return(list(downsampled.data = downsampled.data, tab.attractors = res, cellType_key = k))
+}
+
+
+load_attrators_from_dir <- function(dir, ...) {
+    files.list <- list.files(dir, full.names = T)
+    load_attractors(files.list, ...)
+}
+
+
+
 
 mark_nearest_neighbour <- function(G) {
     E(G)$nearest_neigh <- 0
@@ -160,21 +208,12 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 
 
 
-process_data <- function(tab, G.attractors = NULL, tab.attractors = NULL, col.names = NULL, att.labels = NULL, dist.thresh = 0.7,
+process_data <- function(tab.clustered, G.attractors = NULL, tab.attractors = NULL, col.names = NULL, att.labels = NULL, dist.thresh = 0.7,
                          already.clustered = FALSE, inter.cluster.connections = FALSE, col.names.inter_cluster = NULL, inter_cluster.weight_factor = 0.7, ew_influence,
                          overlap_method = NULL)
 {
-
-    if(!already.clustered)
-    {
-        tab <- cluster_data(tab, col.names)
-        tab.clustered <- ddply(tab, ~groups, colwise(median))
-    }
-    else
-        tab.clustered <- tab
-
     if(is.null(col.names.inter_cluster) || col.names.inter_cluster == "")
-        col.names.inter_cluster = col.names
+        col.names.inter_cluster <- col.names
     if(is.null(G.attractors))
     {
         G.attractors <- build_graph(tab.attractors, col.names)

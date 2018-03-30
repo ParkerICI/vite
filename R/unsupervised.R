@@ -1,10 +1,23 @@
 
+
+
+
 cosine_similarity_from_matrix <- function(v, m) {
     m <- as.matrix(m[, names(v), drop = F])
     ret <- apply(m, 1, function(x, v) {return(crossprod(x, v)/sqrt(crossprod(x) * crossprod(v)))}, v)
     return(ret)
 }
 
+
+#' Calculate cosine similarity between the rows of a matrix
+#'
+#' This function calculates the cosine similarity between the rows of an input matrix, according to the values
+#' of the variables in the columns
+#'
+#' @param m An \code{N x P} matrix
+#'
+#' @return Returns a \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
+#'
 cosine_similarity_matrix <- function(m) {
     ret <- t(apply(m, 1, function(x, m) {cosine_similarity_from_matrix(x, m)}, m = m))
     return(ret)

@@ -97,6 +97,8 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
 #'
 #' @export
 get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.name) {
+    message("Building graph...")
+    flush.console()
     G <- build_graph(tab, col.names, filtering_T = filtering.threshold)
 
     for(i in names(tab))
@@ -107,8 +109,10 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.n
     V(G)$name <- seq_along(V(G)$name)
 
     message("Running ForceAtlas2...")
+    flush.console()
     G <- complete_forceatlas2(G, first.iter = 50000, overlap.iter = 1, overlap_method = NULL, ew_influence = 5)
     message("ForceAtlas2 done")
+    flush.console()
 
     return(G)
 }
@@ -146,6 +150,9 @@ get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, m
 
     if(use.basename && !is.null(metadata.tab) && !is.null(metadata.filename.col))
         metadata.tab[, metadata.filename.col] <- basename(metadata.tab[, metadata.filename.col])
+
+    message("Loading data...")
+    flush.console()
 
     for(f in files.list) {
         temp <- read.table(f, header = T, sep = "\t", check.names = F, quote = "", stringsAsFactors = F)

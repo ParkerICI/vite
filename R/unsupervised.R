@@ -2,10 +2,9 @@
 
 
 
-cosine_similarity_from_matrix <- function(v, m) {
-    m <- as.matrix(m[, names(v), drop = F])
-    ret <- apply(m, 1, function(x, v) {return(crossprod(x, v)/sqrt(crossprod(x) * crossprod(v)))}, v)
-    return(ret)
+cosine_similarity_from_matrix <- function(x, m) {
+    x <- x / sqrt(crossprod(x))
+    return(as.vector((m %*% x) / sqrt(rowSums(m^2))))
 }
 
 
@@ -18,11 +17,10 @@ cosine_similarity_from_matrix <- function(v, m) {
 #'
 #' @return Returns a \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
 #'
-cosine_similarity_matrix <- function(m) {
-    ret <- t(apply(m, 1, function(x, m) {cosine_similarity_from_matrix(x, m)}, m = m))
+cosine_similarity_matrix <- function(m){
+    ret <- m %*% t(m) / (sqrt(rowSums(m^2) %*% t(rowSums(m^2))))
     return(ret)
 }
-
 
 
 filter_similarity_matrix <- function(m, T) {

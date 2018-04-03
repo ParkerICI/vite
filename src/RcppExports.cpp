@@ -5,6 +5,28 @@
 
 using namespace Rcpp;
 
+// filter_similarity_matrix_cpp
+void filter_similarity_matrix_cpp(NumericMatrix m, double threshold);
+RcppExport SEXP _scgraphs_filter_similarity_matrix_cpp(SEXP mSEXP, SEXP thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
+    filter_similarity_matrix_cpp(m, threshold);
+    return R_NilValue;
+END_RCPP
+}
+// filter_similarity_matrix_by_rank_cpp
+void filter_similarity_matrix_by_rank_cpp(NumericMatrix m, unsigned int threshold);
+RcppExport SEXP _scgraphs_filter_similarity_matrix_by_rank_cpp(SEXP mSEXP, SEXP thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type threshold(thresholdSEXP);
+    filter_similarity_matrix_by_rank_cpp(m, threshold);
+    return R_NilValue;
+END_RCPP
+}
 // layout_forceatlas2Cpp
 void layout_forceatlas2Cpp(NumericMatrix lay, NumericVector F_att_orig, NumericVector mass, NumericVector nodes_size, NumericMatrix edge_list, NumericVector avg_displ, double kgrav, unsigned int iter, bool prevent_overlap, LogicalVector fixed, NumericVector max_displ, float stopping_tolerance, bool barnes_hut);
 RcppExport SEXP _scgraphs_layout_forceatlas2Cpp(SEXP laySEXP, SEXP F_att_origSEXP, SEXP massSEXP, SEXP nodes_sizeSEXP, SEXP edge_listSEXP, SEXP avg_displSEXP, SEXP kgravSEXP, SEXP iterSEXP, SEXP prevent_overlapSEXP, SEXP fixedSEXP, SEXP max_displSEXP, SEXP stopping_toleranceSEXP, SEXP barnes_hutSEXP) {
@@ -29,6 +51,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_scgraphs_filter_similarity_matrix_cpp", (DL_FUNC) &_scgraphs_filter_similarity_matrix_cpp, 2},
+    {"_scgraphs_filter_similarity_matrix_by_rank_cpp", (DL_FUNC) &_scgraphs_filter_similarity_matrix_by_rank_cpp, 2},
     {"_scgraphs_layout_forceatlas2Cpp", (DL_FUNC) &_scgraphs_layout_forceatlas2Cpp, 13},
     {NULL, NULL, 0}
 };

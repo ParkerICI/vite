@@ -10,6 +10,9 @@ get_common_columns(files.list)
 \item{files.list}{A vector of input file names. Each file should be a tab-separated table, with the first row
 representing column headers}
 }
+\value{
+Returns a vector of column names that are present in all the files in \code{files.list}
+}
 \description{
 Get the columns that are common to a set of input tabular files
 }

@@ -4,7 +4,7 @@
 #' @param files.list A vector of input file names. Each file should be a tab-separated table, with the first row
 #'   representing column headers
 #'
-#' @returns Returns a vector of column names that are present in all the files in \code{files.list}
+#' @return Returns a vector of column names that are present in all the files in \code{files.list}
 
 get_common_columns <- function(files.list) {
     l <- list()

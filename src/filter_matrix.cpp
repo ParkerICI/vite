@@ -2,9 +2,23 @@
 using namespace Rcpp;
 using std::sort;
 
+
+//' Filter a matrix based on a threshold value
+//'
+//' This function filters an input matrix based on a threshold value. Values below
+//' the threshold are set to 0. For each row this function calculates \code{max(row)}.
+//' The actual threshold used for filtering is \code{min(threshold, max(row))}. This guarantees that
+//' there is always at least one non-zero value in each row. WARNING: the input matrix is modified
+//' in-place.
+//'
+//' @param m The input matrix
+//' @param treshold The threhsold used for filtering. See Description for details
+//' @return This function does not return any value. The input matrix is modified in-place.
+//'
+//'
 // [[Rcpp::export]]
 
-void filter_similarity_matrix(NumericMatrix m, double threshold) {
+void filter_matrix(NumericMatrix m, double threshold) {
     unsigned int nrow = m.nrow();
     unsigned int ncol = m.ncol();
 
@@ -39,7 +53,7 @@ class Comparator {
 
 // [[Rcpp::export]]
 
-void filter_similarity_matrix_by_rank(NumericMatrix m, unsigned int threshold) {
+void filter_matrix_by_rank(NumericMatrix m, unsigned int threshold) {
     unsigned int nrow = m.nrow();
     IntegerVector v = seq(0, m.ncol() - 1);
 

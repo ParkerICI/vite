@@ -44,9 +44,9 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
     # Both these filtering functions modify the dd matrix directly, so we don't need to reassign the return value
 
     if(filtering_T >= 1)
-        filter_similarity_matrix_by_rank(dd, filtering_T)
+        filter_matrix_by_rank(dd, filtering_T)
     else
-        filter_similarity_matrix(dd, filtering_T)
+        filter_matrix(dd, filtering_T)
 
     G <- igraph::graph.adjacency(dd, mode = "undirected", weighted = T)
     n.vertices <- length(V(G))

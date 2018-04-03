@@ -23,30 +23,6 @@ cosine_similarity_matrix <- function(m){
 }
 
 
-filter_similarity_matrix <- function(m, T) {
-    ret <- t(apply(m, 1, function(x) {
-        if(max(x) <= T)
-            x[x < max(x)] <- 0
-        else
-            x[x < T] <- 0
-        return(x)
-    }))
-    return(ret)
-}
-
-filter_similarity_matrix_by_rank <- function(m, T) {
-    ret <- t(apply(m, 1, function(x) {
-        r <- rank(x, ties.method = "first")
-        r <- max(r) - r + 1
-        x[r > T] <- 0
-        return(x)
-    }))
-    return(ret)
-}
-
-
-
-
 #' Builds a graph from a data.frame of nodes
 #'
 #' @param tab A \code{data.frame} of graph nodes. All the columns of \code{tab} will become vertex properties of the output graph
@@ -64,10 +40,13 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
     diag(dd) <- 0
     dd[is.na(dd)] <- 0 #This can happen if one of the attractors has all 0's for the markers of interest
 
+
+    # Both these filtering functions modify the dd matrix directly, so we don't need to reassign the return value
+
     if(filtering_T >= 1)
-        dd <- filter_similarity_matrix_by_rank(dd, filtering_T)
+        filter_similarity_matrix_by_rank(dd, filtering_T)
     else
-        dd <- filter_similarity_matrix(dd, filtering_T)
+        filter_similarity_matrix(dd, filtering_T)
 
     G <- igraph::graph.adjacency(dd, mode = "undirected", weighted = T)
     n.vertices <- length(V(G))

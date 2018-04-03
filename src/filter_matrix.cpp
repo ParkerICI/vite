@@ -4,7 +4,7 @@ using std::sort;
 
 // [[Rcpp::export]]
 
-void filter_similarity_matrix_cpp(NumericMatrix m, double threshold) {
+void filter_similarity_matrix(NumericMatrix m, double threshold) {
     unsigned int nrow = m.nrow();
     unsigned int ncol = m.ncol();
 
@@ -39,7 +39,7 @@ class Comparator {
 
 // [[Rcpp::export]]
 
-void filter_similarity_matrix_by_rank_cpp(NumericMatrix m, unsigned int threshold) {
+void filter_similarity_matrix_by_rank(NumericMatrix m, unsigned int threshold) {
     unsigned int nrow = m.nrow();
     IntegerVector v = seq(0, m.ncol() - 1);
 

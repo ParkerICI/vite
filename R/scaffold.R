@@ -84,7 +84,9 @@ get_distances_from_attractors <- function(m, tab, col.names, dist.thresh) {
 
 
     dd[is.na(dd)] <- 0 #This can happen if one of the attractors has all 0's for the markers of interest
-    dd <- filter_similarity_matrix(dd, dist.thresh)
+
+    # This function modifies the dd matrix directly
+    filter_similarity_matrix(dd, dist.thresh)
     return(dd)
 }
 
@@ -181,8 +183,11 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 
     dist.thresh <- quantile(dd, probs = 0.85, na.rm = T)
     dist.thresh <- max(c(dist.thresh, 0.5))
-    dd <- filter_similarity_matrix(dd, dist.thresh)
-    dd <- filter_similarity_matrix_by_rank(dd, 3)
+
+    # Both these functions modify the matrix dd directly
+
+    filter_similarity_matrix(dd, dist.thresh)
+    filter_similarity_matrix_by_rank(dd, 3)
 
     e.list <- NULL
 

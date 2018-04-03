@@ -5,25 +5,25 @@
 
 using namespace Rcpp;
 
-// filter_similarity_matrix_cpp
-void filter_similarity_matrix_cpp(NumericMatrix m, double threshold);
-RcppExport SEXP _scgraphs_filter_similarity_matrix_cpp(SEXP mSEXP, SEXP thresholdSEXP) {
+// filter_similarity_matrix
+void filter_similarity_matrix(NumericMatrix m, double threshold);
+RcppExport SEXP _scgraphs_filter_similarity_matrix(SEXP mSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
     Rcpp::traits::input_parameter< double >::type threshold(thresholdSEXP);
-    filter_similarity_matrix_cpp(m, threshold);
+    filter_similarity_matrix(m, threshold);
     return R_NilValue;
 END_RCPP
 }
-// filter_similarity_matrix_by_rank_cpp
-void filter_similarity_matrix_by_rank_cpp(NumericMatrix m, unsigned int threshold);
-RcppExport SEXP _scgraphs_filter_similarity_matrix_by_rank_cpp(SEXP mSEXP, SEXP thresholdSEXP) {
+// filter_similarity_matrix_by_rank
+void filter_similarity_matrix_by_rank(NumericMatrix m, unsigned int threshold);
+RcppExport SEXP _scgraphs_filter_similarity_matrix_by_rank(SEXP mSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type threshold(thresholdSEXP);
-    filter_similarity_matrix_by_rank_cpp(m, threshold);
+    filter_similarity_matrix_by_rank(m, threshold);
     return R_NilValue;
 END_RCPP
 }
@@ -51,8 +51,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_scgraphs_filter_similarity_matrix_cpp", (DL_FUNC) &_scgraphs_filter_similarity_matrix_cpp, 2},
-    {"_scgraphs_filter_similarity_matrix_by_rank_cpp", (DL_FUNC) &_scgraphs_filter_similarity_matrix_by_rank_cpp, 2},
+    {"_scgraphs_filter_similarity_matrix", (DL_FUNC) &_scgraphs_filter_similarity_matrix, 2},
+    {"_scgraphs_filter_similarity_matrix_by_rank", (DL_FUNC) &_scgraphs_filter_similarity_matrix_by_rank, 2},
     {"_scgraphs_layout_forceatlas2Cpp", (DL_FUNC) &_scgraphs_layout_forceatlas2Cpp, 13},
     {NULL, NULL, 0}
 };

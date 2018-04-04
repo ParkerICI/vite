@@ -53,15 +53,42 @@ layout_forceatlas2 <- function(G, ew_influence = 1, kgrav = 1, iter = 1000, prev
     avg_displ <- numeric(iter)
     max_displ <- numeric(iter)
 
+    if(barnes_hut)
+        message("Using Barnes-Hut approximation\n")
+
+    message(sprintf("Stopping tolerance: %f\n", stopping_tolerance))
+    flush.console()
+
     layout_forceatlas2Cpp(lay, F_att, mass, V(G)$size, edge_list, avg_displ,
                             kgrav, iter, prevent.overlap, fixed, max_displ, stopping_tolerance, barnes_hut)
 
     return(list(lay = lay, avg_displ = avg_displ, max_displ = max_displ))
 }
 
+
+#' Performs a Complete cycle of ForceAtlas2
+#'
+#' This function performs a complete (i.e. possibly including overlap resolution) cycle of the ForceAtlas2 force-directed layout algorithm
+#'
+#' @param G The input graph
+#' @param first.iter The number of iterations in the first cycle, which is performed without overlap resolution
+#' @param overlap_method If this is \code{NULL} overlap resolution is not performed. Otherwise this should be a string specifying the
+#'   overlap resolution method. Two options are possible
+#'   \itemize{
+#'     \item{\code{"repel"}}: This is the method used in the original ForceAtlas2 implementation. Using this method, a repulsive force
+#'       is applied to nodes that overlap each other. This method can cause problem in cases where the layout is extremely crowded,
+#'       as this repulsive force becomes the major determinant of the layout, and the nodes end up being arranged essentially in a grid
+#'     \item{\code{"expand"}}: In this method, the graph is linearly expanded, until no two nodes overlap anymore
+#'   }
+#' @return Returns an \code{igraph} object with two additional vertex attributes \code{x} and \code{y}, containing the x and y coordinates
+#'   of the vertices in the final layout
+#'
+#'
 complete_forceatlas2 <- function(G, first.iter = 1000, overlap.iter, overlap_method = NULL, ...) {
 
     message("First iteration")
+    flush.console()
+
     ret <- layout_forceatlas2(G, prevent.overlap = FALSE, iter = first.iter, ...)
     lay <- ret$lay
 
@@ -70,6 +97,7 @@ complete_forceatlas2 <- function(G, first.iter = 1000, overlap.iter, overlap_met
     if(!is.null(overlap_method)) {
         if(overlap_method == "repel") {
             message("Second iteration with prevent overalp")
+            flush.console()
             ret <- layout_forceatlas2(G, prevent.overlap = TRUE, iter = overlap.iter, ...)
             lay <- ret$lay
 

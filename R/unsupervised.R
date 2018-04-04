@@ -49,7 +49,7 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
         filter_matrix(dd, filtering_T)
 
     G <- igraph::graph.adjacency(dd, mode = "undirected", weighted = T)
-    n.vertices <- length(V(G))
+    n.vertices <- igraph::vcount(G)
     lay <- igraph::layout.kamada.kawai(G)
     colnames(lay) <- c("x", "y")
     G <- igraph::set.vertex.attribute(G, name = "x", value = lay[, "x"])

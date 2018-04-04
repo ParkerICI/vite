@@ -4,14 +4,14 @@
 #' Filter a matrix based on a threshold value
 #'
 #' This function filters an input matrix based on a threshold value. Values below
-#' the threshold are set to 0 For each row this function calculates \code{max(row)}.
+#' the threshold are set to 0. For each row this function calculates \code{max(row)}.
 #' The actual threshold used for filtering is \code{min(threshold, max(row))}. This guarantees that
 #' there is always at least one non-zero value in each row. WARNING: the input matrix is modified
 #' in-place.
 #'
-#' @param m
+#' @param m The input matrix
 #' @param treshold The threhsold used for filtering. See Description for details
-#' @return This function does not return any value. The input matrix is modified in-place
+#' @return This function does not return any value. The input matrix is modified in-place.
 #'
 #'
 filter_matrix <- function(m, threshold) {

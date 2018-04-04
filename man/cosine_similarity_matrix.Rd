@@ -10,7 +10,7 @@ cosine_similarity_matrix(m)
 \item{m}{An \code{N x P} matrix}
 }
 \value{
-Returns a \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
+Returns an \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
 }
 \description{
 This function calculates the cosine similarity between the rows of an input matrix, according to the values

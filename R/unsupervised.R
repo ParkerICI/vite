@@ -1,7 +1,11 @@
-
-
-
-
+#' Calculate cosine similarity between a vector and the rows of a matrix
+#'
+#' @param x A numeric vector of length \code{P}
+#' @param m An \code{NxP} matrix
+#'
+#' @return Returns a vector of length \code{N} containing the cosine similarity between
+#'   the vector \code{x} and all the rows of \code{m}
+#'
 cosine_similarity_from_matrix <- function(x, m) {
     x <- x / sqrt(crossprod(x))
     return(as.vector((m %*% x) / sqrt(rowSums(m^2))))
@@ -15,7 +19,7 @@ cosine_similarity_from_matrix <- function(x, m) {
 #'
 #' @param m An \code{N x P} matrix
 #'
-#' @return Returns a \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
+#' @return Returns an \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
 #'
 cosine_similarity_matrix <- function(m){
     ret <- m %*% t(m) / (sqrt(rowSums(m^2) %*% t(rowSums(m^2))))
@@ -49,11 +53,7 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
         filter_matrix(dd, filtering_T)
 
     G <- igraph::graph.adjacency(dd, mode = "undirected", weighted = T)
-    n.vertices <- igraph::vcount(G)
-    lay <- igraph::layout.kamada.kawai(G)
-    colnames(lay) <- c("x", "y")
-    G <- igraph::set.vertex.attribute(G, name = "x", value = lay[, "x"])
-    G <- igraph::set.vertex.attribute(G, name = "y", value = lay[, "y"])
+
     for(i in names(tab))
         G <- igraph::set.vertex.attribute(G, name = i, value = tab[, i])
 
@@ -87,7 +87,7 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.n
 
     message("Running ForceAtlas2...")
     flush.console()
-    G <- complete_forceatlas2(G, first.iter = 50000, overlap.iter = 1, overlap_method = NULL, ew_influence = 5)
+    G <- complete_forceatlas2(G, first.iter = 50000, overlap.method = NULL, ew.influence = 5)
     message("ForceAtlas2 done")
     flush.console()
 

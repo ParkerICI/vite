@@ -4,15 +4,15 @@
 \alias{complete_forceatlas2}
 \title{Performs a Complete cycle of ForceAtlas2}
 \usage{
-complete_forceatlas2(G, first.iter = 1000, overlap.iter,
-  overlap_method = NULL, ...)
+complete_forceatlas2(G, first.iter = 1000, overlap.method = NULL,
+  overlap.iter = NULL, ...)
 }
 \arguments{
 \item{G}{The input graph}
 
-\item{first.iter}{The number of iterations in the first cycle, which is performed without overlap resolution}
+\item{first.iter}{The maximum number of iterations in the first step, which is performed without overlap resolution}
 
-\item{overlap_method}{If this is \code{NULL} overlap resolution is not performed. Otherwise this should be a string specifying the
+\item{overlap.method}{If this is \code{NULL} overlap resolution is not performed. Otherwise this should be a string specifying the
 overlap resolution method. Two options are possible
 \itemize{
   \item{\code{"repel"}}: This is the method used in the original ForceAtlas2 implementation. Using this method, a repulsive force
@@ -20,6 +20,9 @@ overlap resolution method. Two options are possible
     as this repulsive force becomes the major determinant of the layout, and the nodes end up being arranged essentially in a grid
   \item{\code{"expand"}}: In this method, the graph is linearly expanded, until no two nodes overlap anymore
 }}
+
+\item{overlap.iter}{The maximum number of iterations for the overlap resolution step. This is only used if \code{overlap.method} is not
+\code{NULL}}
 }
 \value{
 Returns an \code{igraph} object with two additional vertex attributes \code{x} and \code{y}, containing the x and y coordinates

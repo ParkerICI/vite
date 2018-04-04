@@ -123,7 +123,7 @@ get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, m
     tab <- NULL
     ret <- list(graphs = list())
 
-    common.cols <- get_common_columns(files.list)
+    common.cols <- scfeatures::get_common_columns(files.list, file.type = "txt")
 
     if(use.basename && !is.null(metadata.tab) && !is.null(metadata.filename.col))
         metadata.tab[, metadata.filename.col] <- basename(metadata.tab[, metadata.filename.col])

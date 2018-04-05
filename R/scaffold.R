@@ -1,9 +1,18 @@
-downsample_by <- function(tab, col.name, size)
-{
+#' Downsample an input data.frame
+#'
+#' This function downsamples an input \code{data.frame}, so that for each value of \code{col.name}, there are
+#' at most \code{size} rows.
+#'
+#' @param tab Input \code{data.frame}
+#' @param col.name The name of a column in tab (typically the data in the column should either be characters or factors).
+#'   For each value of \code{tab$col.name}, there will be at most \code{size} row in the output table
+#' @param size The number of rows to select for each value of \code{tab$col.name}. If size is larger than the total number of rows
+#'   available for a particular value, all rows for that value will be returned
+#' @return Returns a \code{data.frame}
+#'
+downsample_by <- function(tab, col.name, size) {
     print(sprintf("Downsampling to %d events", size))
-    return(ddply(tab, col.name, function(x, size)
-    {
-        #s <- min(c(size, nrow(x)))
+    return(ddply(tab, col.name, function(x, size) {
         if(nrow(x) <= size)
             return(x)
         else
@@ -14,7 +23,24 @@ downsample_by <- function(tab, col.name, size)
 
 
 
-#... additional named arguments for read.FCS
+#' Load landmark populations from a list of FCS files
+#'
+#' @param files.list The list of files to load. The population names will be derived by splitting the file name
+#'   using \code{"_"} as separator, and taking the last field
+#' @param asinh.cofactor The cofactor to use for \code{asinh} transformation, only used if \code{transform.data} is \code{TRUE}
+#' @param transform.data Logical, whether \code{asinh} transformation should be applied to the data
+#' @param ... Additional arguments passed to \code{flowCore::read.FCS}
+#' @return Returns a list with the following elements:
+#'   \itemize{
+#'     \item{\code{downsampled.data}}: a \code{data.frame} containing the data, downsampled to a fixed number of events
+#'     \item{\code{tab.attractors}}: a \code{data.frame} with the data for the landmark nodes. Each row is a separate landmark
+#'       population, and the columns correspond to the median expression values of each marker
+#'     \item{\code{celltype_key}}: a \code{data.frame} containing the key for the names of the landmark populations. The
+#'       \code{cellType} column is a numeric id corresponding to the column of the same name in \code{tab.attractors}
+#'   }
+#'
+#'
+#'
 load_attractors <- function(files.list, asinh.cofactor, transform.data = T, ...) {
     res <- NULL
     for(f in files.list) {
@@ -39,7 +65,13 @@ load_attractors <- function(files.list, asinh.cofactor, transform.data = T, ...)
 }
 
 
-load_attrators_from_dir <- function(dir, ...) {
+#' Load landmark populations from a directory
+#'
+#' @param dir A directory name. All the FCS files in the directory will be loaded
+#' @inheritDotParams load_attractors -files.list
+#' @inherit load_attractors return
+#'
+load_attractors_from_dir <- function(dir, ...) {
     files.list <- list.files(dir, full.names = T)
     load_attractors(files.list, ...)
 }
@@ -60,18 +92,50 @@ mark_nearest_neighbour <- function(G) {
     return(G)
 }
 
-
+#' Remove connections to landmark nodes based on an expression threshold
+#'
+#' This function removes connections to a landmark node, in cases where the expression of all markers
+#' for that landmark is less than a threshold. This is useful when mapping data that contains markers which
+#' are all expected to be absent in certain landmarks
+#'
+#' @param dd A matrix of cosine similarity values between cluster nodes (rows) and landmark nodes (columns)
+#' @param tab A \code{data.frame} containing the data (median expression values) for the landmark nodes
+#' @param col.names A vector of colum names to be used for the computation
+#' @param thresh The threshold to use. Connections to landmarks for which the expression of all the markers
+#'   is \code{< thresh}, will be removed
+#' @return Returns the same dd matrix, but with the values corresponding to the connections that have been
+#'   removed set to 0
+#'
 distance_from_attractor_hard_filter <- function(dd, tab, col.names, thresh = 0.5) {
     tab <- tab[, col.names]
     w <- apply(tab[,col.names], 1, function(x, thresh) {all(x < thresh)}, thresh = thresh)
-    if(any(w))
-        print("Hard removing some connections to unstained landmarks")
-    dd[, w] <- 0
+    if(any(w)) {
+        message(sprintf("Hard removing some connections to landmarks using threshold: %f", thresh))
+        flush.console()
+        dd[, w] <- 0
+    }
     return(dd)
 }
 
-
-get_distances_from_attractors <- function(m, tab, col.names, dist.thresh) {
+#' Calculate (and filter) disatances between cluster and landmark ondes
+#'
+#' This function calculates the cosine similarity between the cluster and landmark nodes, and then filters
+#' out the resulting matrix to include only the top-scoring edges. The result of this function can be used
+#' as an adjacency matrix for graph construction
+#'
+#' @param m A \code{data.frame} containing expression values for the cluster nodes
+#' @param tab A \code{data.frame} containing expression values for the landmark nodes
+#' @param col.names A vector of column names to be used for the computation
+#' @param q.thresh The quantile probability to be used for filtering edges. The algorithm
+#'   will calculate a weight threshold based on this quantile of the weight distribution
+#' @param min.thresh The minimum value to be used for thresholding edges. Irrespective of the results of the
+#'   quantile computation, the actual threshold used will never be less than this value
+#' @return Returns a matrix with each row corresponding to a cluster node, and each column
+#'   corresponding to the similarity between the cluster node and the respective landmark node. This matrix
+#'   can be directly used as an adjacency matrix for graph construction
+#'
+#'
+get_distances_from_attractors <- function(m, tab, col.names, q.thresh, min.thresh) {
     att <- as.matrix(tab[, col.names])
     row.names(att) <- as.character(1:nrow(tab))
     m <- as.matrix(m[, col.names])
@@ -135,16 +199,6 @@ add_vertices_to_attractors_graph <- function(G, tab.clustered, tab.median, col.n
         }
     }
 
-    maxx <- maxy <- rep(Inf, vcount(G))
-    minx <- miny <- rep(-Inf, vcount(G))
-
-    maxx[1:num.vertices] <- minx[1:num.vertices] <- V(G)$x[1:num.vertices]
-    maxy[1:num.vertices] <- miny[1:num.vertices] <- V(G)$y[1:num.vertices]
-    lay <- igraph::layout.kamada.kawai(G, minx = minx, maxx = maxx, miny = miny, maxy = maxy)
-    colnames(lay) <- c("x", "y")
-    G <- igraph::set.vertex.attribute(G, name = "x", value = lay[, "x"])
-    G <- igraph::set.vertex.attribute(G, name = "y", value = lay[, "y"])
-
     V(G)[1:num.vertices]$type <- 1 #attractor
     V(G)[(num.vertices + 1):vcount(G)]$type <- 2 #cell
 
@@ -156,24 +210,20 @@ add_vertices_to_attractors_graph <- function(G, tab.clustered, tab.median, col.n
 }
 
 
-get_vertex_table <- function(G) {
-    att <- list.vertex.attributes(G)
-    ret <- NULL
-
-    for(a in att) {
-        d <- data.frame(get.vertex.attribute(G, a), stringsAsFactors = FALSE)
-        if(is.null(ret))
-            ret <- d
-        else
-            ret <- cbind(ret, d, stringsAsFactors = FALSE)
-    }
-    names(ret) <- att
-    return(ret)
-}
-
-
+#' Add connections between cluster nodes
+#'
+#' This function takes an existing Scaffold map and adds connections between the cluster nodes
+#'
+#' @param G An \code{igraph} object, representing a Scaffold map, as returned by \code{add_vertices_to_attractors_graph}
+#' @param col.names A vector of column names to be used for the comptation of similarities
+#' @param weight.factor Weight factor. The edge weights for the inter-cluster connections will be multiplied
+#'   by this weight factor. This is useful in case one wants to weight the connections between the clusters differently
+#'   from the connections between the clusters and the landmarks
+#' @return Returns an \code{igraph} object, representing a Scaffold map with inter-cluster connections
+#'
+#'
 add_inter_clusters_connections <- function(G, col.names, weight.factor) {
-    tab <- get_vertex_table(G)
+    tab <- igraph::as_data_frame(G, what = "vertices")
     tab <- tab[tab$type == 2,]
     m <- as.matrix(tab[, col.names])
     row.names(m) <- tab$name
@@ -246,7 +296,7 @@ process_data <- function(tab.clustered, G.attractors = NULL, tab.attractors = NU
         fixed[1:vcount(G.attractors)] <- TRUE
 
         G.complete <- complete.forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
-                                           overlap_method = "repel", ew_influence = ew_influence, fixed = fixed)
+                                           overlap_method = "repel", ew.influence = ew_influence, fixed = fixed)
         if(inter.cluster.connections)
         {
             print("Adding inter-cluster connections with markers:")
@@ -254,7 +304,7 @@ process_data <- function(tab.clustered, G.attractors = NULL, tab.attractors = NU
             print(sprintf("Weight factor:%f", inter_cluster.weight_factor))
             G.complete <- add_inter_clusters_connections(G.complete, col.names.inter_cluster, weight.factor = inter_cluster.weight_factor)
             G.complete <- complete.forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
-                                               overlap_method = overlap_method, ew_influence = ew_influence, fixed = fixed)
+                                               overlap_method = overlap_method, ew.influence = ew_influence, fixed = fixed)
         }
 
     }

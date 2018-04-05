@@ -2,6 +2,7 @@
 
 export(build_graph)
 export(complete_forceatlas2)
+export(filter_matrix_by_rank)
 export(get_unsupervised_graph)
 export(get_unsupervised_graph_from_files)
 export(layout_forceatlas2)

@@ -2,7 +2,7 @@
 #'
 #' @name scgraphs
 #' @import Rcpp
-#' @importFrom igraph V E
+#' @importFrom igraph V E V<-
 #' @useDynLib scgraphs
 #'
 #'

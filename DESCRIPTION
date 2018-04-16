@@ -1,15 +1,16 @@
 Package: scgraphs
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Analyzing single-cell data using graphs
 Version: 0.1.0
 Authors@R: "Pier Federico Gherardini <pfgherardini@parkerici.org> [aut, cre]"
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: This package is for visualizing and analyzing high-dimensional
+    single-cell data using graphs
 Imports:
     Rcpp,
     igraph
+Remotes: ParkerICI/scfeatures
 LinkingTo: Rcpp
-License: What license is it under?
+License: GPL v3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1

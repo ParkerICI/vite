@@ -7,7 +7,7 @@
 add_inter_clusters_connections(G, col.names, weight.factor)
 }
 \arguments{
-\item{G}{An \code{igraph} object, representing a Scaffold map, as returned by \code{add_vertices_to_attractors_graph}}
+\item{G}{An \code{igraph} object, representing a Scaffold map, as returned by \code{add_vertices_to_landmarks_graph}}
 
 \item{col.names}{A vector of column names to be used for the comptation of similarities}
 

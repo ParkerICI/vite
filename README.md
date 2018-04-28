@@ -34,6 +34,8 @@ This package enables the analysis of single-cell data using graphs, both unsuper
 
 The documentation of each function can be accessed directly within R. The following snippet demonstrate typical usage
 
+### Creating an unsupervised graph
+
 ```R
 # Use as input files that have been generated using scfeatures
 input.files <- c("A.clustered.txt", "B.clustered.txt")

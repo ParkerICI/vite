@@ -11,8 +11,8 @@
 #' @return Returns a \code{data.frame}
 #'
 downsample_by <- function(tab, col.name, size) {
-    print(sprintf("Downsampling to %d events", size))
-    return(ddply(tab, col.name, function(x, size) {
+    message(sprintf("Downsampling to %d events", size))
+    return(plyr::ddply(tab, col.name, function(x, size) {
         if(nrow(x) <= size)
             return(x)
         else
@@ -27,53 +27,49 @@ downsample_by <- function(tab, col.name, size) {
 #'
 #' @param files.list The list of files to load. The population names will be derived by splitting the file name
 #'   using \code{"_"} as separator, and taking the last field
-#' @param asinh.cofactor The cofactor to use for \code{asinh} transformation, only used if \code{transform.data} is \code{TRUE}
-#' @param transform.data Logical, whether \code{asinh} transformation should be applied to the data
+#' @param asinh.cofactor The cofactor to use for \code{asinh} transformation. If this is \code{NULL} no transformation
+#'   is applied
 #' @param ... Additional arguments passed to \code{flowCore::read.FCS}
 #' @return Returns a list with the following elements:
 #'   \itemize{
 #'     \item{\code{downsampled.data}}: a \code{data.frame} containing the data, downsampled to a fixed number of events
-#'     \item{\code{tab.attractors}}: a \code{data.frame} with the data for the landmark nodes. Each row is a separate landmark
-#'       population, and the columns correspond to the median expression values of each marker
-#'     \item{\code{celltype_key}}: a \code{data.frame} containing the key for the names of the landmark populations. The
-#'       \code{cellType} column is a numeric id corresponding to the column of the same name in \code{tab.attractors}
+#'     \item{\code{tab.landmarks}}: a \code{data.frame} with the data for the landmark nodes. Each row is a separate landmark
+#'       population, and the columns correspond to the median expression values of each marker. The \code{data.frame} also
+#'       contains a column called \code{cellType} which contains the name of the corresponding landmark. In order to derive
+#'       the name of the landmark. the name of the corresponding FCS file is split on the \code{"_"} character, and the last
+#'       field is used for the landmark name.
 #'   }
 #'
 #'
 #'
-load_attractors <- function(files.list, asinh.cofactor, transform.data = T, ...) {
+load_landmarks <- function(files.list, asinh.cofactor, ...) {
     res <- NULL
     for(f in files.list) {
         population <- tail(strsplit(f, "_")[[1]], n = 1)
+        population <- gsub(".fcs", "", population)
         fcs <- flowCore::read.FCS(f, ...)
         tab <- scfeatures::convert_fcs(fcs, asinh.cofactor, transform.data, clip.at.zero = T)
 
-        tab <- cbind(tab, population, stringsAsFactors = F, check.names = F)
+        tab <- data.frame(tab, cellType = population, stringsAsFactors = F, check.names = F)
         res <- rbind(res, tab)
     }
 
-    downsampled.data <- downsample_by(res, "population", 1000)
-    names(downsampled.data) <- gsub("population", "cellType", names(downsampled.data))
+    downsampled.data <- downsample_by(res, "cellType", 1000)
 
-    #Change cellType to be numbers
-    k <- unique(res$population)
-    k <- data.frame(population = k, cellType = seq_along(k), stringsAsFactors = F)
-    res <- merge(res, k)
-    res <- res[, grep("population", names(res), invert = T)]
-    res <- ddply(res, ~cellType, colwise(median))
-    return(list(downsampled.data = downsampled.data, tab.attractors = res, cellType_key = k))
+    res <- plyr::ddply(res, ~cellType, plyr::colwise(median))
+    return(list(downsampled.data = downsampled.data, tab.landmarks = res))
 }
 
 
 #' Load landmark populations from a directory
 #'
 #' @param dir A directory name. All the FCS files in the directory will be loaded
-#' @inheritDotParams load_attractors -files.list
-#' @inherit load_attractors return
+#' @inheritDotParams load_landmarks -files.list
+#' @inherit load_landmarks return
 #'
-load_attractors_from_dir <- function(dir, ...) {
+load_landmarks_from_dir <- function(dir, ...) {
     files.list <- list.files(dir, full.names = T)
-    load_attractors(files.list, ...)
+    load_landmarks(files.list, ...)
 }
 
 
@@ -135,7 +131,7 @@ distance_from_attractor_hard_filter <- function(dd, tab, col.names, thresh = 0.5
 #'   can be directly used as an adjacency matrix for graph construction
 #'
 #'
-get_distances_from_attractors <- function(m, tab, col.names, q.thresh, min.thresh) {
+get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.thresh) {
     att <- as.matrix(tab[, col.names])
     row.names(att) <- as.character(1:nrow(tab))
     m <- as.matrix(m[, col.names])
@@ -147,15 +143,16 @@ get_distances_from_attractors <- function(m, tab, col.names, q.thresh, min.thres
 
 
 
-    dd[is.na(dd)] <- 0 #This can happen if one of the attractors has all 0's for the markers of interest
+    dd[is.na(dd)] <- 0 #This can happen if one of the landmarks has all 0's for the markers of interest
 
     # This function modifies the dd matrix directly
     filter_matrix(dd, dist.thresh)
     return(dd)
 }
 
-add_attractors_labels <- function(G, v) {
-    V(G)$name[1:length(v)] <- V(G)$Label[1:length(v)] <- v
+add_landmarks_labels <- function(G, v) {
+    w <- V(G)$type == 1
+    V(G)$name[w] <- V(G)$Label[w] <- V(G)$cellType[w]
     return(G)
 }
 
@@ -180,8 +177,8 @@ set_visual_attributes <- function(G) {
 
 
 
-add_vertices_to_attractors_graph <- function(G, tab.clustered, tab.median, col.names, dist.thresh = 0.7) {
-    dd <- get_distances_from_attractors(tab.clustered, tab.median, col.names, dist.thresh)
+add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.median, col.names, dist.thresh = 0.7) {
+    dd <- get_distances_from_landmarks(tab.clustered, tab.median, col.names, dist.thresh)
     n <- nrow(dd)
     num.vertices <- length(V(G))
     G <- add.vertices(G, n)
@@ -214,7 +211,7 @@ add_vertices_to_attractors_graph <- function(G, tab.clustered, tab.median, col.n
 #'
 #' This function takes an existing Scaffold map and adds connections between the cluster nodes
 #'
-#' @param G An \code{igraph} object, representing a Scaffold map, as returned by \code{add_vertices_to_attractors_graph}
+#' @param G An \code{igraph} object, representing a Scaffold map, as returned by \code{add_vertices_to_landmarks_graph}
 #' @param col.names A vector of column names to be used for the comptation of similarities
 #' @param weight.factor Weight factor. The edge weights for the inter-cluster connections will be multiplied
 #'   by this weight factor. This is useful in case one wants to weight the connections between the clusters differently
@@ -263,54 +260,49 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 
 
 
-process_data <- function(tab.clustered, G.attractors = NULL, tab.attractors = NULL, col.names = NULL, att.labels = NULL, dist.thresh = 0.7,
-                         already.clustered = FALSE, inter.cluster.connections = FALSE, col.names.inter_cluster = NULL, inter_cluster.weight_factor = 0.7, ew_influence,
-                         overlap_method = NULL)
-{
-    if(is.null(col.names.inter_cluster) || col.names.inter_cluster == "")
-        col.names.inter_cluster <- col.names
-    if(is.null(G.attractors))
-    {
-        G.attractors <- build_graph(tab.attractors, col.names)
+get_scaffold_map <- function(tab.clustered, col.names, G.landmarks = NULL, tab.landmarks = NULL, dist.thresh = 0.7,
+                        inter.cluster.col.names = NULL, inter.cluster.weight.factor = 0.7, ew.influence, overlap.method = "repel") {
 
-        G.complete <- add_vertices_to_attractors_graph(G.attractors, tab.clustered, tab.attractors, col.names, dist.thresh)
+    if(is.null(G.landmarks)) {
+        G.landmarks <- build_graph(tab.landmarks, col.names)
+
+        G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, dist.thresh)
         G.complete <- complete.forceatlas2(G.complete, first.iter = 50000,
-                                           overlap.iter = 20000, ew_influence = ew_influence, overlap_method = "repel")
-        if(inter.cluster.connections)
-        {
-            print("Adding inter-cluster connections with markers:")
-            print(col.names.inter_cluster)
-            print(sprintf("Weight factor:%f", inter_cluster.weight_factor))
-            G.complete <- add_inter_clusters_connections(G.complete, col.names.inter_cluster, weight.factor = inter_cluster.weight_factor)
-            G.complete <- complete.forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
-                                               ew_influence = ew_influence, overlap_method = overlap_method)
+                                           overlap.iter = 20000, ew.influence = ew.influence, overlap.method = overlap.method)
+        if(!is.null(inter.cluster.col.names)) {
+            message("Adding inter-cluster connections with markers:")
+            message(inter.cluster.col.names)
+            message(sprintf("Weight factor:%f", inter.cluster.weight.factor))
+            flush.console()
+            G.complete <- add_inter_clusters_connections(G.complete, inter.cluster.col.names, weight.factor = inter.cluster.weight.factor)
+            G.complete <- complete_forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
+                                               ew.influence = ew.influence, overlap.method = overlap.method)
         }
-        V(G.attractors)$x <- V(G.complete)$x[1:vcount(G.attractors)]
-        V(G.attractors)$y <- V(G.complete)$y[1:vcount(G.attractors)]
+        V(G.landmarks)$x <- V(G.complete)$x[1:(igraph::vcount(G.landmarks))]
+        V(G.landmarks)$y <- V(G.complete)$y[1:(igraph::vcount(G.landmarks))]
     }
-    else
-    {
-        G.complete <- add_vertices_to_attractors_graph(G.attractors, tab.clustered, tab.attractors, col.names, dist.thresh)
+    else {
+        G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, dist.thresh)
 
-        fixed <- rep(FALSE, vcount(G.complete))
-        fixed[1:vcount(G.attractors)] <- TRUE
+        fixed <- rep(FALSE, igraph::vcount(G.complete))
+        fixed[1:(igraph::vcount(G.landmarks))] <- TRUE
 
-        G.complete <- complete.forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
-                                           overlap_method = "repel", ew.influence = ew_influence, fixed = fixed)
-        if(inter.cluster.connections)
-        {
-            print("Adding inter-cluster connections with markers:")
-            print(col.names.inter_cluster)
-            print(sprintf("Weight factor:%f", inter_cluster.weight_factor))
-            G.complete <- add_inter_clusters_connections(G.complete, col.names.inter_cluster, weight.factor = inter_cluster.weight_factor)
-            G.complete <- complete.forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
-                                               overlap_method = overlap_method, ew.influence = ew_influence, fixed = fixed)
+        G.complete <- complete_forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
+                                           overlap.method = "repel", ew.influence = ew.influence, fixed = fixed)
+        if(inter.cluster.connections) {
+            message("Adding inter-cluster connections with markers:")
+            message(inter.cluster.col.names)
+            message(sprintf("Weight factor:%f", inter.cluster.weight.factor))
+            flush.console()
+            G.complete <- add_inter_clusters_connections(G.complete, col.names.inter_cluster, weight.factor = inter.cluster.weight.factor)
+            G.complete <- complete_forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
+                                               overlap.method = overlap.method, ew.influence = ew.influence, fixed = fixed)
         }
 
     }
-    G.complete <- add_attractors_labels(G.complete, att.labels)
+    G.complete <- add_landmarks_labels(G.complete)
     V(G.complete)$name <- gsub(".fcs", "", V(G.complete)$name)
-    return(list(G.attractors = G.attractors, G.complete = G.complete, tab.attractors = tab.attractors, tab = tab, col.names = col.names))
+    return(list(G.landmarks = G.landmarks, G.complete = G.complete, tab.landmarks = tab.landmarks, tab = tab, col.names = col.names))
 }
 
 

@@ -4,7 +4,8 @@
 \alias{get_distances_from_landmarks}
 \title{Calculate (and filter) disatances between cluster and landmark ondes}
 \usage{
-get_distances_from_landmarks(m, tab, col.names, q.thresh, min.thresh)
+get_distances_from_landmarks(m, tab, col.names, q.thresh,
+  min.similarity = 0.5)
 }
 \arguments{
 \item{m}{A \code{data.frame} containing expression values for the cluster nodes}
@@ -16,8 +17,8 @@ get_distances_from_landmarks(m, tab, col.names, q.thresh, min.thresh)
 \item{q.thresh}{The quantile probability to be used for filtering edges. The algorithm
 will calculate a weight threshold based on this quantile of the weight distribution}
 
-\item{min.thresh}{The minimum value to be used for thresholding edges. Irrespective of the results of the
-quantile computation, the actual threshold used will never be less than this value}
+\item{min.similarity}{The minimum similarity value to be used for thresholding edges. Irrespective of
+the results of the quantile computation, the actual threshold used will never be less than this value}
 }
 \value{
 Returns a matrix with each row corresponding to a cluster node, and each column

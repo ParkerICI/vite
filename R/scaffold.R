@@ -124,14 +124,14 @@ distance_from_attractor_hard_filter <- function(dd, tab, col.names, thresh = 0.5
 #' @param col.names A vector of column names to be used for the computation
 #' @param q.thresh The quantile probability to be used for filtering edges. The algorithm
 #'   will calculate a weight threshold based on this quantile of the weight distribution
-#' @param min.thresh The minimum value to be used for thresholding edges. Irrespective of the results of the
-#'   quantile computation, the actual threshold used will never be less than this value
+#' @param min.similarity The minimum similarity value to be used for thresholding edges. Irrespective of
+#'   the results of the quantile computation, the actual threshold used will never be less than this value
 #' @return Returns a matrix with each row corresponding to a cluster node, and each column
 #'   corresponding to the similarity between the cluster node and the respective landmark node. This matrix
 #'   can be directly used as an adjacency matrix for graph construction
 #'
 #'
-get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.thresh) {
+get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.similarity = 0.5) {
     att <- as.matrix(tab[, col.names])
     row.names(att) <- as.character(1:nrow(tab))
     m <- as.matrix(m[, col.names])
@@ -139,7 +139,7 @@ get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.thresh
     dd <- distance_from_attractor_hard_filter(dd, tab, col.names, thresh = 1)
 
     dist.thresh <- quantile(dd, probs = 0.85, na.rm = T)
-    dist.thresh <- max(c(dist.thresh, 0.5))
+    dist.thresh <- max(c(dist.thresh, min.similarity))
 
 
 
@@ -177,8 +177,8 @@ set_visual_attributes <- function(G) {
 
 
 
-add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.median, col.names, dist.thresh = 0.7) {
-    dd <- get_distances_from_landmarks(tab.clustered, tab.median, col.names, dist.thresh)
+add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.median, col.names, min.similarity = 0.5) {
+    dd <- get_distances_from_landmarks(tab.clustered, tab.median, col.names, min.similarity)
     n <- nrow(dd)
     num.vertices <- length(V(G))
     G <- add.vertices(G, n)
@@ -259,14 +259,41 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 }
 
 
-
-get_scaffold_map <- function(tab.clustered, col.names, G.landmarks = NULL, tab.landmarks = NULL, dist.thresh = 0.7,
-                        inter.cluster.col.names = NULL, inter.cluster.weight.factor = 0.7, ew.influence, overlap.method = "repel") {
+#' Creates a Scaffold map
+#'
+#' @param tab.clustered A \code{data.frame} containing the clusters to be represented in the Scaffold map. Each
+#'   row corresponds to a cluster, and each column to a different marker
+#' @param col.names A character vector of column names to be used for the analysis (these must correspond to the names
+#'   of the columns in \code{tab.clustered})
+#' @param tab.landmarks A \code{data.frame} containing the data corresponding to the landmark nodes. Each row corresponds
+#'   to a landmark, and each column to a different cluster
+#' @param G.landmarks An \code{igraph} object represeting the identity and position of landmark nodes. If this is
+#'   \code{NULL} the position of the landmark nodes will be calculated de-novo as part of the computation.
+#' @param min.similarity The minimum similarity value to be used as threshold to filter out edges. See the documentation
+#'   for \code{\link{get_distances_from_landmarks}}
+#' @param inter.cluster.col.names A vector of column names to be used to calculate inter-cluster edges If this
+#'   is \code{NULL} no inter-cluster edges will be present in the Scaffold map (not recommended)
+#' @param inter.cluster.weight.factor The weight of the inter-cluster edges will be multplied by this number before
+#'   calculating the ForceAtlas2 layout. This can be used to fine tune the relative contribution of cluster-to-landmark vs
+#'   cluster-to-cluster edges in the laytout
+#' @param overlap.method The method to be used for resolving nodes overlap in the final layout. See the documentation for
+#'   \code{\link{complete_forceatlas2}}
+#'
+#' @return Returns a list with the following components
+#'  \itemize{
+#'     \item{\code{G.landmarks}}: an \code{igraph} object representing the identity and position of landmark nodes, suitable
+#'       for succesive invocations of this function
+#'     \item{\code{G.complete}}: an \code{igraph} object representing the Scaffold map
+#'   }
+#'
+#' @export
+get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, ew.influence, G.landmarks = NULL, min.similarity = 0.5,
+                        inter.cluster.col.names = col.names, inter.cluster.weight.factor = 0.7, overlap.method = "repel") {
 
     if(is.null(G.landmarks)) {
         G.landmarks <- build_graph(tab.landmarks, col.names)
 
-        G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, dist.thresh)
+        G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, min.similarity)
         G.complete <- complete.forceatlas2(G.complete, first.iter = 50000,
                                            overlap.iter = 20000, ew.influence = ew.influence, overlap.method = overlap.method)
         if(!is.null(inter.cluster.col.names)) {
@@ -282,7 +309,7 @@ get_scaffold_map <- function(tab.clustered, col.names, G.landmarks = NULL, tab.l
         V(G.landmarks)$y <- V(G.complete)$y[1:(igraph::vcount(G.landmarks))]
     }
     else {
-        G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, dist.thresh)
+        G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, min.similarity)
 
         fixed <- rep(FALSE, igraph::vcount(G.complete))
         fixed[1:(igraph::vcount(G.landmarks))] <- TRUE
@@ -302,7 +329,7 @@ get_scaffold_map <- function(tab.clustered, col.names, G.landmarks = NULL, tab.l
     }
     G.complete <- add_landmarks_labels(G.complete)
     V(G.complete)$name <- gsub(".fcs", "", V(G.complete)$name)
-    return(list(G.landmarks = G.landmarks, G.complete = G.complete, tab.landmarks = tab.landmarks, tab = tab, col.names = col.names))
+    return(list(G.landmarks = G.landmarks, G.complete = G.complete))
 }
 
 

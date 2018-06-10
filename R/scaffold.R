@@ -345,6 +345,24 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
     return(list(G.landmarks = G.landmarks, G.complete = G.complete))
 }
 
+
+#' Write the result of a Scaffold analysis
+#'
+#' This function writes the result of a Scaffold analysis. This includes both the Scaffold map itself as a
+#' \code{graphml} file, as well downsampled single-cell data for both the clusters and the landmarks
+#' that can be used for plotting
+#'
+#' @param G An \code{igraph} object representing the Scaffold map
+#' @param cluster.data A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
+#'   corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
+#'   for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
+#'   to the \code{"all_events.rds"} output file
+#' @param landmarks.data The landmarls data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
+#' @param out.dir The name of the output directory
+#' @param out.name The name of the output Scaffold map (The extensions \code{".graphml"} will be added to this name)
+#'
+#' @export
+#'
 write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.name) {
     dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
     igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
@@ -382,8 +400,21 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
 }
 
 
+
+#' High level wrapper for performing a Scaffold analysis
+#'
+#' This function represent a high-level entry-point for performing a Scaffold analysis
+#'
+#' @param files.list Character vector. The list of files to process
+#' @param ref.file The name of the file to be used as reference (i.e. the first file to be processed, which will determine
+#'   the position of the landmarks in all subsequent maps)
+#' @param landmarks.data The landmarks data as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
+#' @param col.names A character vector of column (i.e. marker) names to be used for the analysis. These columns have to be present in all the files
+#' @param out.dir The name of the output directory
+#' @param ... Additional parameters passed to \code{\link{get_scaffold_map}}
+#'
 #' @export
-process_files <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", ...) {
+run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", ...) {
     G.landmarks <- NULL
 
     for(f in files.list) {
@@ -401,6 +432,8 @@ process_files <- function(files.list, ref.file, landmarks.data, col.names, out.d
 
         G.attractors <- scaffold.res$G.attractors
     }
+
+    return(invisible(NULL))
 }
 
 

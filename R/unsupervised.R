@@ -7,7 +7,7 @@
 #'   the vector \code{x} and all the rows of \code{m}
 #'
 cosine_similarity_from_matrix <- function(x, m) {
-    x <- x / sqrt(crossprod(x))
+    x <- x / as.vector(sqrt(crossprod(x)))
     return(as.vector((m %*% x) / sqrt(rowSums(m^2))))
 }
 

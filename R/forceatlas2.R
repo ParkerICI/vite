@@ -62,19 +62,20 @@ adaptive_expand <- function(G, max.iter) {
 #' @export
 #'
 layout_forceatlas2 <- function(G, ew.influence = 1, kgrav = 1, iter = 1000, prevent.overlap = FALSE, fixed = NULL, stopping.tolerance = 0.001, barnes.hut = FALSE) {
-    if(vcount(G) >= 2000)
+    v.count <- igraph::vcount(G)
+
+    if(v.count >= 2000)
         barnes.hut <- TRUE
-    if(vcount(G) > 2000)
+    if(v.count > 2000)
         stopping.tolerance <- 0.01
-    else if(vcount(G) > 800)
+    else if(v.count > 800)
         stopping.tolerance <- 0.005
     else
         stopping.tolerance <- 0.001
 
     lay <- NULL
-    if(is.null(get.vertex.attribute(G, "x"))) {
-        n.vertices <- igraph::vcount(G)
-        lay <- matrix(ncol = 2, nrow = n.vertices, data = rnorm(n.vertices * 2, 10, 2))
+    if(is.null(igraph::get.vertex.attribute(G, "x"))) {
+        lay <- matrix(ncol = 2, nrow = v.count, data = rnorm(v.count * 2, 10, 2))
         colnames(lay) <- c("x", "y")
     }
 
@@ -83,11 +84,11 @@ layout_forceatlas2 <- function(G, ew.influence = 1, kgrav = 1, iter = 1000, prev
 
 
     if(is.null(fixed))
-        fixed <- rep(FALSE, igraph::vcount(G))
+        fixed <- rep(FALSE, v.count)
 
     #This is only used with prevent.overlap
     if(is.null(igraph::get.vertex.attribute(G, "size")))
-        V(G)$size <- rep(10, igraph::vcount(G))
+        V(G)$size <- rep(10, v.count)
     mass <- 1 + igraph::degree(G)
     F_att <- (E(G)$weight ^ ew.influence)
     edge_list <- igraph::get.edgelist(G, names = F) - 1 #This is gonna be used in the C code where the indexing is 0-based
@@ -138,8 +139,8 @@ complete_forceatlas2 <- function(G, first.iter = 1000, overlap.method = NULL, ov
 
     G <- igraph::set.vertex.attribute(G, name = "x", value = lay[, 1])
     G <- igraph::set.vertex.attribute(G, name = "y", value = lay[, 2])
-    if(!is.null(overlap_method)) {
-        if(overlap_method == "repel") {
+    if(!is.null(overlap.method)) {
+        if(overlap.method == "repel") {
             message("Second iteration with prevent overalp")
             flush.console()
             ret <- layout_forceatlas2(G, prevent.overlap = TRUE, iter = overlap.iter, ...)

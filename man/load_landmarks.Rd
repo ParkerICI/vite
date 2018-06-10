@@ -4,7 +4,7 @@
 \alias{load_landmarks}
 \title{Load landmark populations from a list of FCS files}
 \usage{
-load_landmarks(files.list, asinh.cofactor, ...)
+load_landmarks(files.list, asinh.cofactor, transform.data, ...)
 }
 \arguments{
 \item{files.list}{The list of files to load. The population names will be derived by splitting the file name

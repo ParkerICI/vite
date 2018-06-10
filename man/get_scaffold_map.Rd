@@ -4,8 +4,8 @@
 \alias{get_scaffold_map}
 \title{Creates a Scaffold map}
 \usage{
-get_scaffold_map(tab.clustered, col.names, tab.landmarks, ew.influence,
-  G.landmarks = NULL, min.similarity = 0.5,
+get_scaffold_map(tab.clustered, col.names, tab.landmarks, G.landmarks = NULL,
+  ew.influence = ceiling(length(col.names)/3), min.similarity = 0.5,
   inter.cluster.col.names = col.names, inter.cluster.weight.factor = 0.7,
   overlap.method = "repel")
 }

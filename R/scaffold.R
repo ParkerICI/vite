@@ -41,8 +41,8 @@ downsample_by <- function(tab, col.name, size) {
 #'   }
 #'
 #'
-#'
-load_landmarks <- function(files.list, asinh.cofactor, ...) {
+#' @export
+load_landmarks <- function(files.list, asinh.cofactor, transform.data, ...) {
     res <- NULL
     for(f in files.list) {
         population <- tail(strsplit(f, "_")[[1]], n = 1)
@@ -67,6 +67,7 @@ load_landmarks <- function(files.list, asinh.cofactor, ...) {
 #' @inheritDotParams load_landmarks -files.list
 #' @inherit load_landmarks return
 #'
+#' @export
 load_landmarks_from_dir <- function(dir, ...) {
     files.list <- list.files(dir, full.names = T)
     load_landmarks(files.list, ...)
@@ -133,7 +134,7 @@ distance_from_attractor_hard_filter <- function(dd, tab, col.names, thresh = 0.5
 #'
 get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.similarity = 0.5) {
     att <- as.matrix(tab[, col.names])
-    row.names(att) <- as.character(1:nrow(tab))
+    #row.names(att) <- as.character(1:nrow(tab))
     m <- as.matrix(m[, col.names])
     dd <- t(apply(m, 1, function(x, att) {cosine_similarity_from_matrix(x, att)}, att))
     dd <- distance_from_attractor_hard_filter(dd, tab, col.names, thresh = 1)
@@ -147,6 +148,7 @@ get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.simila
 
     # This function modifies the dd matrix directly
     filter_matrix(dd, dist.thresh)
+    colnames(dd) <- tab$cellType
     return(dd)
 }
 
@@ -175,16 +177,21 @@ set_visual_attributes <- function(G) {
     return(G)
 }
 
-
-
-add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.median, col.names, min.similarity = 0.5) {
-    dd <- get_distances_from_landmarks(tab.clustered, tab.median, col.names, min.similarity)
+#' Add cluster vertices to a landmark graph
+#'
+#' @param G An \code{igraph} object representing the landmark graph
+#' @inheritParams get_scaffold_map
+#'
+#' @return Returns a new \code{igraph} object with the added cluster vertices
+#'
+add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.landmarks, col.names, min.similarity = 0.5) {
+    dd <- get_distances_from_landmarks(tab.clustered, tab.landmarks, col.names, min.similarity)
     n <- nrow(dd)
     num.vertices <- length(V(G))
-    G <- add.vertices(G, n)
+    G <- igraph::add.vertices(G, n)
     v.seq <- (num.vertices + 1):length(V(G))
     V(G)[v.seq]$name <- as.character(v.seq)
-    V(G)[v.seq]$Label <- paste("c", tab.clustered$groups, sep = "")
+    V(G)[v.seq]$Label <- paste("c", tab.clustered$cellType, sep = "")
     row.names(dd) <- as.character(v.seq)
 
     for(i in 1:nrow(dd)) {
@@ -192,15 +199,17 @@ add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.median, col.na
         v <- v[v > 0]
         if(length(v) > 0) {
             e.list <- c(rbind(as.character(num.vertices + i), names(v)))
-            G <- G + edges(e.list, weight = v)
+            G <- G + igraph::edges(e.list, weight = v)
         }
     }
 
+    v.count <- igraph::vcount(G)
+
     V(G)[1:num.vertices]$type <- 1 #attractor
-    V(G)[(num.vertices + 1):vcount(G)]$type <- 2 #cell
+    V(G)[(num.vertices + 1):v.count]$type <- 2 #cell
 
     for(i in names(tab.clustered))
-        G <- igraph::set.vertex.attribute(G, name = i, index = (num.vertices + 1):vcount(G), value = tab.clustered[, i])
+        G <- igraph::set.vertex.attribute(G, name = i, index = (num.vertices + 1):v.count, value = tab.clustered[, i])
 
     G <- set_visual_attributes(G)
     return(G)
@@ -287,18 +296,21 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 #'   }
 #'
 #' @export
-get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, ew.influence, G.landmarks = NULL, min.similarity = 0.5,
-                        inter.cluster.col.names = col.names, inter.cluster.weight.factor = 0.7, overlap.method = "repel") {
+get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmarks = NULL, ew.influence = ceiling(length(col.names) / 3),
+                             min.similarity = 0.5, inter.cluster.col.names = col.names, inter.cluster.weight.factor = 0.7, overlap.method = "repel") {
+
+    message(sprintf("Running with Edge weight: %f", ew.influence))
+    flush.console()
 
     if(is.null(G.landmarks)) {
         G.landmarks <- build_graph(tab.landmarks, col.names)
 
         G.complete <- add_vertices_to_landmarks_graph(G.landmarks, tab.clustered, tab.landmarks, col.names, min.similarity)
-        G.complete <- complete.forceatlas2(G.complete, first.iter = 50000,
+        G.complete <- complete_forceatlas2(G.complete, first.iter = 50000,
                                            overlap.iter = 20000, ew.influence = ew.influence, overlap.method = overlap.method)
         if(!is.null(inter.cluster.col.names)) {
             message("Adding inter-cluster connections with markers:")
-            message(inter.cluster.col.names)
+            message(paste(inter.cluster.col.names, collapse = " "))
             message(sprintf("Weight factor:%f", inter.cluster.weight.factor))
             flush.console()
             G.complete <- add_inter_clusters_connections(G.complete, inter.cluster.col.names, weight.factor = inter.cluster.weight.factor)
@@ -316,9 +328,9 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, ew.influen
 
         G.complete <- complete_forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
                                            overlap.method = "repel", ew.influence = ew.influence, fixed = fixed)
-        if(inter.cluster.connections) {
+        if(!is.null(inter.cluster.col.names)) {
             message("Adding inter-cluster connections with markers:")
-            message(inter.cluster.col.names)
+            message(paste(inter.cluster.col.names, collapse = " "))
             message(sprintf("Weight factor:%f", inter.cluster.weight.factor))
             flush.console()
             G.complete <- add_inter_clusters_connections(G.complete, col.names.inter_cluster, weight.factor = inter.cluster.weight.factor)
@@ -327,12 +339,85 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, ew.influen
         }
 
     }
+    #FIXME: Add highest scoring edges calculation
     G.complete <- add_landmarks_labels(G.complete)
     V(G.complete)$name <- gsub(".fcs", "", V(G.complete)$name)
     return(list(G.landmarks = G.landmarks, G.complete = G.complete))
 }
 
+write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.name) {
+    dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
+    igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
 
+    cluster.data.dir <- file.path(out.dir, "clusters_data")
+
+    if(!is.null(cluster.data$sample)) {
+        sapply(unique(cluster.data$sample), function(x) {dir.create(file.path(cluster.data.dir, x), recursive = TRUE, showWarnings = FALSE)})
+        dir.create(file.path(cluster.data.dir, "pooled"), recursive = TRUE, showWarnings = FALSE)
+    } else {
+        dir.create(file.path(cluster.data.dir, out.name), recursive = TRUE, showWarnings = FALSE)
+    }
+
+    plyr::d_ply(cluster.data, ~cellType, function(x) {
+        if(is.null(x$sample))
+            saveRDS(x, file = file.path(cluster.data.dir, out.name, sprintf("cluster_%d.rds", x$cellType[1])))
+        else {
+            saveRDS(x, file = file.path(cluster.data.dir, "pooled", sprintf("cluster_%d.rds", x$cellType[1])))
+
+            plyr::d_ply(x, ~sample, function(df) {
+                saveRDS(df, file = file.path(cluster.data.dir, df$sample[1], sprintf("cluster_%d.rds", df$cellType[1])))
+            })
+
+
+        }
+    })
+
+    landmark.data.dir <- file.path(out.dir, "landmarks_data")
+    dir.create(landmark.data.dir, recursive = TRUE, showWarnings = TRUE)
+
+    plyr::d_ply(landmarks.data$downsampled.data, ~cellType, function(x) {
+        saveRDS(x, file = file.path(landmark.data.dir, sprintf("%s.rds", x$cellType[1])))
+    })
+    return(invisible(NULL))
+}
+
+
+#' @export
+process_files <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", ...) {
+    G.landmarks <- NULL
+
+    for(f in files.list) {
+        message(paste("Processing", f, sep = " "))
+        flush.console()
+        tab <- read.table(f, header = T, sep = "\t", quote = "", check.names = F, comment.char = "", stringsAsFactors = F)
+
+        tab <- tab[!apply(tab[, col.names], 1, function(x) {all(x == 0)}),]
+
+        scaffold.res <- get_scaffold_map(tab, col.names, landmarks.data$tab.landmarks, G.landmarks, ...)
+        cluster.data <- readRDS(gsub("txt$", "all_events.rds", f))
+        cluster.data <- downsample_by(cluster.data, "cellType", 1000)
+
+        write_scaffold_output(scaffold.res$G.complete, cluster.data, landmarks.data, out.dir, f)
+
+        G.attractors <- scaffold.res$G.attractors
+    }
+}
+
+
+test <- function() {
+    setwd("C:/Users/fgherardini/temp/scaffold_demo")
+
+    col.names <- c("CD45", "CD61", "CD7", "CD33", "CD11c", "CD123", "CD14", "CD11b", "CD8",
+        "CD4", "CD3", "CD66", "CD16", "CD1c", "BDCA3", "CD45RA", "CD161", "CCR7", "CD19", "IgM", "CD56", "HLA-DR")
+
+    input.files <- "A_cells_found_normalized_A_cells_found_normalized.fcs - A_cells_found_normalized.fcs_Cells.fcs.clustered.txt"
+
+    landmarks.data <- load_landmarks_from_dir("gated/", asinh.cofactor = 5, transform.data = T)
+    process_files(input.files, input.files, landmarks.data, col.names, "./")
+
+
+
+}
 
 
 

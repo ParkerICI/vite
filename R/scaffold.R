@@ -74,21 +74,6 @@ load_landmarks_from_dir <- function(dir, ...) {
 }
 
 
-
-
-mark_nearest_neighbour <- function(G) {
-    E(G)$nearest_neigh <- 0
-
-    for(i in 1:(igraph::vcount(G))) {
-        if(V(G)$type[i] == 2) {
-            sel.edges <- igraph::incident(G, i)
-            max.edge <- sel.edges[which.max(E(G)[sel.edges]$weight)]
-            E(G)[max.edge]$nearest_neigh <- 1
-        }
-    }
-    return(G)
-}
-
 #' Remove connections to landmark nodes based on an expression threshold
 #'
 #' This function removes connections to a landmark node, in cases where the expression of all markers
@@ -267,6 +252,43 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
     return(G)
 }
 
+#' Add information about edge types and highest scoring edges
+#'
+#' @param G The input \code{igraph} object
+#' @return Returns \code{G} with an added edge property (\code{edge_type}), and an added vertex property
+#'   (\code{highest_scoring_edge}), with the following meaning:
+#'   \itemize{
+#'     \item{\code{edge_type}}: this is a string with three possible values: \code{"cluster_to_landmark"},
+#'       \code{"inter_cluster"}, \code{"highest_scoring"}. These indicate where the edge is between a cluster and a landmark,
+#'       between two clusters, or the highest scoring edge among all the \code{"cluster_to_landmark"}
+#'       edges of a single cluster, respectively
+#'     \item{\code{highest_scoring_edge}}: a number representing the index of the \code{"highest_scoring"} edge for this vertex
+#'   }
+#'
+get_highest_scoring_edges <- function(G) {
+
+    # Remove inter-cluster edges for this calculation
+    e <- igraph::get.edges(G, E(G))
+    E(G)$edge_type <- "cluster_to_landmark"
+    e <- cbind(V(G)$type[e[,1]], V(G)$type[e[,2]])
+    to.remove <- (e[,1] == 2) & (e[,2] == 2)
+    E(G)$edge_type[(e[,1] == 2) & (e[,2] == 2)] <- "inter_cluster"
+    g.temp <- igraph::delete.edges(G, E(G)[to.remove])
+
+    V(g.temp)$highest_scoring_edge <- 0
+    for(i in 1:vcount(g.temp)) {
+        if(V(g.temp)$type[i] == 2) {
+            sel.edges <- igraph::incident(g.temp, i)
+            max.edge <- sel.edges[which.max(E(G)[sel.edges]$weight)]
+            V(g.temp)$highest_scoring_edge[i] <- max.edge
+            E(G)$edge_type[max.edge] <- "highest_scoring"
+        }
+    }
+    V(G)$highest_scoring_edge <- V(g.temp)$highest_scoring_edge
+    return(G)
+}
+
+
 
 #' Creates a Scaffold map
 #'
@@ -339,7 +361,8 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
         }
 
     }
-    #FIXME: Add highest scoring edges calculation
+
+    G.complete <- get_highest_scoring_edges(G.complete)
     G.complete <- add_landmarks_labels(G.complete)
     V(G.complete)$name <- gsub(".fcs", "", V(G.complete)$name)
     return(list(G.landmarks = G.landmarks, G.complete = G.complete))
@@ -391,7 +414,7 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
     })
 
     landmark.data.dir <- file.path(out.dir, "landmarks_data")
-    dir.create(landmark.data.dir, recursive = TRUE, showWarnings = TRUE)
+    dir.create(landmark.data.dir, recursive = TRUE, showWarnings = FALSE)
 
     plyr::d_ply(landmarks.data$downsampled.data, ~cellType, function(x) {
         saveRDS(x, file = file.path(landmark.data.dir, sprintf("%s.rds", x$cellType[1])))
@@ -443,10 +466,10 @@ test <- function() {
     col.names <- c("CD45", "CD61", "CD7", "CD33", "CD11c", "CD123", "CD14", "CD11b", "CD8",
         "CD4", "CD3", "CD66", "CD16", "CD1c", "BDCA3", "CD45RA", "CD161", "CCR7", "CD19", "IgM", "CD56", "HLA-DR")
 
-    input.files <- "A_cells_found_normalized_A_cells_found_normalized.fcs - A_cells_found_normalized.fcs_Cells.fcs.clustered.txt"
+    input.files <- list.files(pattern = "*.clustered.txt$")
 
     landmarks.data <- load_landmarks_from_dir("gated/", asinh.cofactor = 5, transform.data = T)
-    process_files(input.files, input.files, landmarks.data, col.names, "./")
+    run_scaffold_analysis(input.files, input.files[1], landmarks.data, col.names)
 
 
 

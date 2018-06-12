@@ -138,13 +138,13 @@ get_distances_from_landmarks <- function(m, tab, col.names, q.thresh, min.simila
 }
 
 add_landmarks_labels <- function(G, v) {
-    w <- V(G)$type == 1
+    w <- V(G)$type == "landmark"
     V(G)$name[w] <- V(G)$Label[w] <- V(G)$cellType[w]
     return(G)
 }
 
 set_visual_attributes <- function(G) {
-    att <- V(G)$type == 1
+    att <- V(G)$type == "landmark"
     V(G)$r <- 79
     V(G)$g <- 147
     V(G)$b <- 222
@@ -190,8 +190,8 @@ add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.landmarks, col
 
     v.count <- igraph::vcount(G)
 
-    V(G)[1:num.vertices]$type <- 1 #attractor
-    V(G)[(num.vertices + 1):v.count]$type <- 2 #cell
+    V(G)[1:num.vertices]$type <- "landmark"
+    V(G)[(num.vertices + 1):v.count]$type <- "cluster"
 
     for(i in names(tab.clustered))
         G <- igraph::set.vertex.attribute(G, name = i, index = (num.vertices + 1):v.count, value = tab.clustered[, i])
@@ -215,7 +215,7 @@ add_vertices_to_landmarks_graph <- function(G, tab.clustered, tab.landmarks, col
 #'
 add_inter_clusters_connections <- function(G, col.names, weight.factor) {
     tab <- igraph::as_data_frame(G, what = "vertices")
-    tab <- tab[tab$type == 2,]
+    tab <- tab[tab$type == "cluster",]
     m <- as.matrix(tab[, col.names])
     row.names(m) <- tab$name
     dd <- cosine_similarity_matrix(m)
@@ -266,24 +266,26 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 #'   }
 #'
 get_highest_scoring_edges <- function(G) {
-
     # Remove inter-cluster edges for this calculation
     e <- igraph::get.edges(G, E(G))
     E(G)$edge_type <- "cluster_to_landmark"
     e <- cbind(V(G)$type[e[,1]], V(G)$type[e[,2]])
-    to.remove <- (e[,1] == 2) & (e[,2] == 2)
-    E(G)$edge_type[(e[,1] == 2) & (e[,2] == 2)] <- "inter_cluster"
+
+    to.remove <- (e[,1] == "cluster") & (e[,2] == "cluster")
+    E(G)$edge_type[to.remove] <- "inter_cluster"
     g.temp <- igraph::delete.edges(G, E(G)[to.remove])
 
     V(g.temp)$highest_scoring_edge <- 0
-    for(i in 1:vcount(g.temp)) {
-        if(V(g.temp)$type[i] == 2) {
+
+    for(i in 1:(igraph::vcount(g.temp))) {
+        if(V(g.temp)$type[i] == "cluster") {
             sel.edges <- igraph::incident(g.temp, i)
             max.edge <- sel.edges[which.max(E(G)[sel.edges]$weight)]
             V(g.temp)$highest_scoring_edge[i] <- max.edge
             E(G)$edge_type[max.edge] <- "highest_scoring"
         }
     }
+
     V(G)$highest_scoring_edge <- V(g.temp)$highest_scoring_edge
     return(G)
 }

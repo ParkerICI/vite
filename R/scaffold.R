@@ -403,12 +403,12 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
 
     plyr::d_ply(cluster.data, ~cellType, function(x) {
         if(is.null(x$sample))
-            saveRDS(x, file = file.path(cluster.data.dir, out.name, sprintf("cluster_%d.rds", x$cellType[1])))
+            saveRDS(x, file = file.path(cluster.data.dir, out.name, sprintf("c%d.rds", x$cellType[1])))
         else {
-            saveRDS(x, file = file.path(cluster.data.dir, "pooled", sprintf("cluster_%d.rds", x$cellType[1])))
+            saveRDS(x, file = file.path(cluster.data.dir, "pooled", sprintf("c%d.rds", x$cellType[1])))
 
             plyr::d_ply(x, ~sample, function(df) {
-                saveRDS(df, file = file.path(cluster.data.dir, df$sample[1], sprintf("cluster_%d.rds", df$cellType[1])))
+                saveRDS(df, file = file.path(cluster.data.dir, df$sample[1], sprintf("c%d.rds", df$cellType[1])))
             })
 
 

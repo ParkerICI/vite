@@ -393,7 +393,7 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
     igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
 
 
-    scfeatures::write_clusters_data(cluster.data, out.name, output.type = "directory")
+    write_clusters_data(cluster.data, out.name, out.dir)
 
     landmark.data.dir <- file.path(out.dir, "landmarks_data")
     dir.create(landmark.data.dir, recursive = TRUE, showWarnings = FALSE)
@@ -432,6 +432,7 @@ run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.name
         scaffold.res <- get_scaffold_map(tab, col.names, landmarks.data$tab.landmarks, G.landmarks, ...)
         cluster.data <- readRDS(gsub("txt$", "all_events.rds", f))
         cluster.data <- downsample_by(cluster.data, "cellType", 1000)
+        f <- gsub(".clustered.txt", "", f)
 
         write_scaffold_output(scaffold.res$G.complete, cluster.data, landmarks.data, out.dir, f)
 

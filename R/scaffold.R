@@ -392,28 +392,8 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
     dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
     igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
 
-    cluster.data.dir <- file.path(out.dir, "clusters_data")
 
-    if(!is.null(cluster.data$sample)) {
-        sapply(unique(cluster.data$sample), function(x) {dir.create(file.path(cluster.data.dir, x), recursive = TRUE, showWarnings = FALSE)})
-        dir.create(file.path(cluster.data.dir, "pooled"), recursive = TRUE, showWarnings = FALSE)
-    } else {
-        dir.create(file.path(cluster.data.dir, out.name), recursive = TRUE, showWarnings = FALSE)
-    }
-
-    plyr::d_ply(cluster.data, ~cellType, function(x) {
-        if(is.null(x$sample))
-            saveRDS(x, file = file.path(cluster.data.dir, out.name, sprintf("c%d.rds", x$cellType[1])))
-        else {
-            saveRDS(x, file = file.path(cluster.data.dir, "pooled", sprintf("c%d.rds", x$cellType[1])))
-
-            plyr::d_ply(x, ~sample, function(df) {
-                saveRDS(df, file = file.path(cluster.data.dir, df$sample[1], sprintf("c%d.rds", df$cellType[1])))
-            })
-
-
-        }
-    })
+    scfeatures::write_clusters_data(cluster.data, out.name, output.type = "directory")
 
     landmark.data.dir <- file.path(out.dir, "landmarks_data")
     dir.create(landmark.data.dir, recursive = TRUE, showWarnings = FALSE)

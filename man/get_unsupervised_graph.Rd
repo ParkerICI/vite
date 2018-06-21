@@ -4,7 +4,7 @@
 \alias{get_unsupervised_graph}
 \title{Builds an unsupervised force-directed graph}
 \usage{
-get_unsupervised_graph(tab, col.names, filtering.threshold, output.name)
+get_unsupervised_graph(tab, col.names, filtering.threshold)
 }
 \arguments{
 \item{tab}{A \code{data.frame} of graph nodes. All the columns of \code{tab} will become vertex properties of the output graph}

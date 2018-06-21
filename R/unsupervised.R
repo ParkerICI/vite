@@ -73,7 +73,7 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
 #'   is contained in the \code{community_id} vertex attribute of the resulting graph
 #'
 #' @export
-get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.name) {
+get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
     message("Building graph...")
     flush.console()
     G <- build_graph(tab, col.names, filtering_T = filtering.threshold)
@@ -104,6 +104,7 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.n
 #'
 #' @param files.list The list of files to process. The function will first determine the set of columns that are common to all
 #'   the files. Only the common vertex properties will feature in the output graph
+#' @inheritParams get_unsupervised_graph
 #' @param metadata.tab Optional. If specified, a table of file-level metadata, to be added as vertex properties in the graph. Each row
 #'   should specify metadata for a single file, with the columns of \code{metadata.tab} representing metadata values. All the vertices
 #'   derived from that file will have the corresponding metadatata value
@@ -113,12 +114,19 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, output.n
 #'   the vertex was derived from. If \code{use.basename} is \code{TRUE} the \code{basename} will be used, otherwise the full path
 #'   as specified in \code{files.list}. Moreover if \code{use.basename} is \code{TRUE} the matching with the file names contained
 #'   in \code{metadata.tab} will be based on the \code{basename} only
-#' @inheritDotParams get_unsupervised_graph -tab
+#' @param process.cluster.data If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
+#'   each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
+#'   data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
+#'   will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
+#'   but it is not strictly necessary to create the graph. If \code{use.basename} is \code{TRUE} the \code{basename} of the files in
+#'   \code{files.list} will be used for processing.
+
 #'
 #' @return See the return value of \code{get_unsupervised_graph}
 #'
 #' @export
-get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, metadata.filename.col = NULL, use.basename = T, ...) {
+get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.threshold,
+                                              metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE, process.cluster.data = TRUE) {
 
     tab <- NULL
     ret <- list(graphs = list())
@@ -141,7 +149,64 @@ get_unsupervised_graph_from_files <- function(files.list, metadata.tab = NULL, m
         tab <- rbind(tab, temp)
     }
 
-    G <- get_unsupervised_graph(tab, ...)
-    return(G)
+    G <- get_unsupervised_graph(tab, col.names, filtering.threshold)
 
+    if(process.cluster.data) {
+        message("Processing cluster data...")
+        for(f in files.list) {
+            f <- gsub("txt$", "all_events.rds", f)
+            tab <- readRDS(f)
+            if(use.basename)
+                f <- basename(f)
+            write_clusters_data(tab, gsub(".clustered.all_events.rds$", "", f))
+        }
+    }
+
+    return(G)
 }
+
+
+# Add explanation of what happens in the different cases with or without the saample column, and the pooled issue
+#' Write clustering output
+#'
+#' @param clustered.data A \code{data.frame} containing the clustered data. Each row corresponds to cell. The \code{data.frame}
+#'   must include a column called \code{cellType}, indicating cluster membership
+#' @param base.name The base name for naming output files. This is only used if \code{clustered_data} does not contain
+#'   a column called \code{sample}. Otherwise the \code{sample} names are used for this purpose
+#' @param output.dir The output directory
+#'
+#' @export
+write_clusters_data <- function(clustered.data, base.name, output.dir = "./") {
+
+    cluster.data.dir <- file.path(output.dir, "clusters_data")
+    write.pooled <- FALSE
+
+
+    if(!is.null(clustered.data$sample)) {
+        sapply(unique(clustered.data$sample), function(x) {dir.create(file.path(cluster.data.dir, x), recursive = TRUE, showWarnings = FALSE)})
+        if(length(unique(clustered.data$sample)) > 1) {
+            dir.create(file.path(cluster.data.dir, "pooled"), recursive = TRUE, showWarnings = FALSE)
+            write.pooled <- TRUE
+        }
+    } else {
+        dir.create(file.path(cluster.data.dir, base.name), recursive = TRUE, showWarnings = FALSE)
+    }
+
+    plyr::d_ply(clustered.data, ~cellType, function(x) {
+        if(is.null(x$sample))
+            saveRDS(x, file = file.path(cluster.data.dir, base.name, sprintf("c%d.rds", x$cellType[1])))
+        else {
+            if(write.pooled)
+                saveRDS(x, file = file.path(cluster.data.dir, "pooled", sprintf("c%d.rds", x$cellType[1])))
+
+            plyr::d_ply(x, ~sample, function(df) {
+                saveRDS(df, file = file.path(cluster.data.dir, df$sample[1], sprintf("c%d.rds", df$cellType[1])))
+            })
+
+
+        }
+    })
+
+    return(invisible(NULL))
+}
+

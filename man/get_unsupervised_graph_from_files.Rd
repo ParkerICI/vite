@@ -4,12 +4,17 @@
 \alias{get_unsupervised_graph_from_files}
 \title{Builds an unsupervised graph starting from a list of input files}
 \usage{
-get_unsupervised_graph_from_files(files.list, metadata.tab = NULL,
-  metadata.filename.col = NULL, use.basename = T, ...)
+get_unsupervised_graph_from_files(files.list, col.names, filtering.threshold,
+  metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE,
+  process.cluster.data = TRUE)
 }
 \arguments{
 \item{files.list}{The list of files to process. The function will first determine the set of columns that are common to all
 the files. Only the common vertex properties will feature in the output graph}
+
+\item{col.names}{A character vector indicating which columns of \code{tab} should be used to calculate distances}
+
+\item{filtering.threshold}{The threshold used to filter edges in the graph}
 
 \item{metadata.tab}{Optional. If specified, a table of file-level metadata, to be added as vertex properties in the graph. Each row
 should specify metadata for a single file, with the columns of \code{metadata.tab} representing metadata values. All the vertices
@@ -23,11 +28,12 @@ the vertex was derived from. If \code{use.basename} is \code{TRUE} the \code{bas
 as specified in \code{files.list}. Moreover if \code{use.basename} is \code{TRUE} the matching with the file names contained
 in \code{metadata.tab} will be based on the \code{basename} only}
 
-\item{...}{Arguments passed on to \code{get_unsupervised_graph}
-\describe{
-  \item{filtering.threshold}{The threshold used to filter edges in the graph}
-  \item{col.names}{A character vector indicating which columns of \code{tab} should be used to calculate distances}
-}}
+\item{process.cluster.data}{If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
+each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
+data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
+will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
+but it is not strictly necessary to create the graph. If \code{use.basename} is \code{TRUE} the \code{basename} of the files in
+\code{files.list} will be used for processing.}
 }
 \value{
 See the return value of \code{get_unsupervised_graph}

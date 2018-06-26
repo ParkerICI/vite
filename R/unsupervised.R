@@ -84,6 +84,8 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
     cc <- igraph::multilevel.community(G)
     V(G)$community_id <- as.character(cc$membership)
     V(G)$name <- seq_along(V(G)$name)
+    V(G)$type <- "cluster"
+    V(G)$Label <- paste("c", V(G)$cellType, sep = "")
 
     message("Running ForceAtlas2...")
     flush.console()
@@ -110,7 +112,7 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #'   derived from that file will have the corresponding metadatata value
 #' @param metadata.filename.col The name of the column in \code{metadata.tab} that contains the file name to be matched to the files
 #'   in \code{files.list}
-#' @param use.basename The resulting graph will contain an additional vertex property called \code{file_name} identifying which file
+#' @param use.basename The resulting graph will contain an additional vertex property called \code{sample} identifying which file
 #'   the vertex was derived from. If \code{use.basename} is \code{TRUE} the \code{basename} will be used, otherwise the full path
 #'   as specified in \code{files.list}. Moreover if \code{use.basename} is \code{TRUE} the matching with the file names contained
 #'   in \code{metadata.tab} will be based on the \code{basename} only
@@ -142,10 +144,10 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
     for(f in files.list) {
         temp <- read.table(f, header = T, sep = "\t", check.names = F, quote = "", stringsAsFactors = F)
         temp <- temp[, common.cols]
-        temp$file_name <- ifelse(use.basename, basename(f), f)
+        temp$sample <- ifelse(use.basename, basename(f), f)
 
         if(!is.null(metadata.tab) && !is.null(metadata.filename.col))
-            temp <- merge(temp, metadata.tab, by.x = "file_name", by.y = metadata.filename.col, all.x = T)
+            temp <- merge(temp, metadata.tab, by.x = "sample", by.y = metadata.filename.col, all.x = T)
         tab <- rbind(tab, temp)
     }
 
@@ -154,11 +156,11 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
     if(process.cluster.data) {
         message("Processing cluster data...")
         for(f in files.list) {
-            f <- gsub("txt$", "all_events.rds", f)
-            tab <- readRDS(f)
+            rds.file <- gsub("txt$", "all_events.rds", f)
+            tab <- readRDS(rds.file)
             if(use.basename)
                 f <- basename(f)
-            write_clusters_data(tab, gsub(".clustered.all_events.rds$", "", f))
+            write_clusters_data(tab, f)
         }
     }
 

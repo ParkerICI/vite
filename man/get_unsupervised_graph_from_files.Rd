@@ -23,7 +23,7 @@ derived from that file will have the corresponding metadatata value}
 \item{metadata.filename.col}{The name of the column in \code{metadata.tab} that contains the file name to be matched to the files
 in \code{files.list}}
 
-\item{use.basename}{The resulting graph will contain an additional vertex property called \code{file_name} identifying which file
+\item{use.basename}{The resulting graph will contain an additional vertex property called \code{sample} identifying which file
 the vertex was derived from. If \code{use.basename} is \code{TRUE} the \code{basename} will be used, otherwise the full path
 as specified in \code{files.list}. Moreover if \code{use.basename} is \code{TRUE} the matching with the file names contained
 in \code{metadata.tab} will be based on the \code{basename} only}

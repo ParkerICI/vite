@@ -73,18 +73,26 @@ layout_forceatlas2 <- function(G, ew.influence = 1, kgrav = 1, iter = 1000, prev
     else
         stopping.tolerance <- 0.001
 
+    if(is.null(fixed))
+        fixed <- rep(FALSE, v.count)
+
     lay <- NULL
+
     if(is.null(igraph::get.vertex.attribute(G, "x"))) {
         lay <- matrix(ncol = 2, nrow = v.count, data = rnorm(v.count * 2, 10, 2))
         colnames(lay) <- c("x", "y")
+    } else {
+        lay <- cbind(x = V(G)$x, y = V(G)$y)
+        w <- is.na(lay[, "x"])
+
+        if(any(w))
+            lay[w,] <- rnorm(sum(w) * 2, 10, 2)
+
     }
 
-    else
-        lay <- cbind(x = V(G)$x, y = V(G)$y)
 
 
-    if(is.null(fixed))
-        fixed <- rep(FALSE, v.count)
+
 
     #This is only used with prevent.overlap
     if(is.null(igraph::get.vertex.attribute(G, "size")))

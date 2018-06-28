@@ -153,6 +153,8 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
 
     G <- get_unsupervised_graph(tab, col.names, filtering.threshold)
 
+    #Add downsampling option
+
     if(process.cluster.data) {
         message("Processing cluster data...")
         for(f in files.list) {

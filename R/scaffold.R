@@ -357,7 +357,7 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
             message(paste(inter.cluster.col.names, collapse = " "))
             message(sprintf("Weight factor:%f", inter.cluster.weight.factor))
             flush.console()
-            G.complete <- add_inter_clusters_connections(G.complete, col.names.inter_cluster, weight.factor = inter.cluster.weight.factor)
+            G.complete <- add_inter_clusters_connections(G.complete, inter.cluster.col.names, weight.factor = inter.cluster.weight.factor)
             G.complete <- complete_forceatlas2(G.complete, first.iter = 50000, overlap.iter = 20000,
                                                overlap.method = overlap.method, ew.influence = ew.influence, fixed = fixed)
         }
@@ -436,7 +436,7 @@ run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.name
 
         write_scaffold_output(scaffold.res$G.complete, cluster.data, landmarks.data, out.dir, f)
 
-        G.attractors <- scaffold.res$G.attractors
+        G.landmarks <- scaffold.res$G.landmarks
     }
 
     return(invisible(NULL))

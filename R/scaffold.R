@@ -390,6 +390,17 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
 #'
 write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.name) {
     dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
+
+    # This is necessary because igraph does not seem to handle NA's correctly when writing graphML
+
+    attrs <- igraph::list.vertex.attributes(G)
+
+    for(x in attrs) {
+        v <- igraph::get.vertex.attribute(G, x)
+        v[is.na(v)] <- 0
+        G <- igraph::set.vertex.attribute(G, name = x, value = v)
+    }
+
     igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
 
 

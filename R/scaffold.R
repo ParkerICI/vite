@@ -255,10 +255,10 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 #' Add information about edge types and highest scoring edges
 #'
 #' @param G The input \code{igraph} object
-#' @return Returns \code{G} with an added edge property (\code{edge_type}), and an added vertex property
+#' @return Returns \code{G} with an added edge property (\code{type}), and an added vertex property
 #'   (\code{highest_scoring_edge}), with the following meaning:
 #'   \itemize{
-#'     \item{\code{edge_type}}: this is a string with three possible values: \code{"cluster_to_landmark"},
+#'     \item{\code{type}}: this is a string with three possible values: \code{"cluster_to_landmark"},
 #'       \code{"inter_cluster"}, \code{"highest_scoring"}. These indicate where the edge is between a cluster and a landmark,
 #'       between two clusters, or the highest scoring edge among all the \code{"cluster_to_landmark"}
 #'       edges of a single cluster, respectively
@@ -268,11 +268,11 @@ add_inter_clusters_connections <- function(G, col.names, weight.factor) {
 get_highest_scoring_edges <- function(G) {
     # Remove inter-cluster edges for this calculation
     e <- igraph::get.edges(G, E(G))
-    E(G)$edge_type <- "cluster_to_landmark"
+    E(G)$type <- "cluster_to_landmark"
     e <- cbind(V(G)$type[e[,1]], V(G)$type[e[,2]])
 
     to.remove <- (e[,1] == "cluster") & (e[,2] == "cluster")
-    E(G)$edge_type[to.remove] <- "inter_cluster"
+    E(G)$type[to.remove] <- "inter_cluster"
     g.temp <- igraph::delete.edges(G, E(G)[to.remove])
 
     V(g.temp)$highest_scoring_edge <- 0
@@ -282,7 +282,7 @@ get_highest_scoring_edges <- function(G) {
             sel.edges <- igraph::incident(g.temp, i)
             max.edge <- sel.edges[which.max(E(G)[sel.edges]$weight)]
             V(g.temp)$highest_scoring_edge[i] <- max.edge
-            E(G)$edge_type[max.edge] <- "highest_scoring"
+            E(G)$type[max.edge] <- "highest_scoring"
         }
     }
 

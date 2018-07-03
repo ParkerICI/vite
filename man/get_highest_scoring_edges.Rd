@@ -10,13 +10,13 @@ get_highest_scoring_edges(G)
 \item{G}{The input \code{igraph} object}
 }
 \value{
-Returns \code{G} with an added edge property (\code{type}), and an added vertex property
-  (\code{highest_scoring_edge}), with the following meaning:
+Returns \code{G} with 3 added edge properties (\code{cluster_to_landmark}, \code{highest_scoring}, \code{inter_cluster}),
+  and an added vertex property (\code{highest_scoring_edge}), with the following meaning:
   \itemize{
-    \item{\code{type}}: this is a string with three possible values: \code{"cluster_to_landmark"},
-      \code{"inter_cluster"}, \code{"highest_scoring"}. These indicate where the edge is between a cluster and a landmark,
-      between two clusters, or the highest scoring edge among all the \code{"cluster_to_landmark"}
-      edges of a single cluster, respectively
+    \item{\code{cluster_to_landmark}}: if this is 1, this edge is between a cluster and a landmark node
+    \item{\code{highest_scoring}}: if this is 1, this is the highest scoring edge among all the \code{"cluster_to_landmark"}
+      edges of a single cluster
+    \item{\code{inter_cluster}}: if this is 1, this is edge is between two clusters
     \item{\code{highest_scoring_edge}}: a number representing the index of the \code{"highest_scoring"} edge for this vertex
   }
 }

@@ -6,7 +6,7 @@
 \usage{
 get_unsupervised_graph_from_files(files.list, col.names, filtering.threshold,
   metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE,
-  process.cluster.data = TRUE)
+  process.clusters.data = TRUE, downsample.to = 1000)
 }
 \arguments{
 \item{files.list}{The list of files to process. The function will first determine the set of columns that are common to all
@@ -28,12 +28,15 @@ the vertex was derived from. If \code{use.basename} is \code{TRUE} the \code{bas
 as specified in \code{files.list}. Moreover if \code{use.basename} is \code{TRUE} the matching with the file names contained
 in \code{metadata.tab} will be based on the \code{basename} only}
 
-\item{process.cluster.data}{If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
+\item{process.clusters.data}{If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
 each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
 data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
 will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
 but it is not strictly necessary to create the graph. If \code{use.basename} is \code{TRUE} the \code{basename} of the files in
 \code{files.list} will be used for processing.}
+
+\item{downsample.to}{The target number of events for downsampling. Only used if \code{process.clusters.data == TRUE}. This is only
+used for downstream data visualization and does not affect the construction of the graph}
 }
 \value{
 See the return value of \code{get_unsupervised_graph}

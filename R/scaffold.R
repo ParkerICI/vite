@@ -11,7 +11,6 @@
 #' @return Returns a \code{data.frame}
 #'
 downsample_by <- function(tab, col.name, size) {
-    message(sprintf("Downsampling to %d events", size))
     return(plyr::ddply(tab, col.name, function(x, size) {
         if(nrow(x) <= size)
             return(x)
@@ -32,7 +31,7 @@ downsample_by <- function(tab, col.name, size) {
 #' @param ... Additional arguments passed to \code{flowCore::read.FCS}
 #' @return Returns a list with the following elements:
 #'   \itemize{
-#'     \item{\code{downsampled.data}}: a \code{data.frame} containing the data, downsampled to a fixed number of events
+#'     \item{\code{landmarks.data}}: a \code{data.frame} containing the entirety of the data
 #'     \item{\code{tab.landmarks}}: a \code{data.frame} with the data for the landmark nodes. Each row is a separate landmark
 #'       population, and the columns correspond to the median expression values of each marker. The \code{data.frame} also
 #'       contains a column called \code{cellType} which contains the name of the corresponding landmark. In order to derive
@@ -54,10 +53,8 @@ load_landmarks <- function(files.list, asinh.cofactor, transform.data, ...) {
         res <- rbind(res, tab)
     }
 
-    downsampled.data <- downsample_by(res, "cellType", 1000)
-
-    res <- plyr::ddply(res, ~cellType, plyr::colwise(median))
-    return(list(downsampled.data = downsampled.data, tab.landmarks = res))
+    tab.landmarks <- plyr::ddply(res, ~cellType, plyr::colwise(median))
+    return(list(landmarks.data = res, tab.landmarks = tab.landmarks))
 }
 
 
@@ -381,21 +378,23 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
 #' Write the result of a Scaffold analysis
 #'
 #' This function writes the result of a Scaffold analysis. This includes both the Scaffold map itself as a
-#' \code{graphml} file, as well downsampled single-cell data for both the clusters and the landmarks
-#' that can be used for plotting
+#' \code{graphml} file, as well as (optionally) downsampled single-cell data for both the clusters and the landmarks
+#' that can be used for visualization
 #'
 #' @param G An \code{igraph} object representing the Scaffold map
-#' @param cluster.data A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
-#'   corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
-#'   for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
-#'   to the \code{"all_events.rds"} output file
-#' @param landmarks.data The landmarls data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
 #' @param out.dir The name of the output directory
 #' @param out.name The name of the output Scaffold map (The extensions \code{".graphml"} will be added to this name)
-#'
+#' @param clusters.data A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
+#'   corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
+#'   for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
+#'   to the \code{"all_events.rds"} output file. If this is \code{NULL} no clusters data is written
+#' @param landmarks.data The landmarks data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
+#'   If this is \code{NULL} no landmarks data is written
+#' @param downsample.to The number of events to target for downsampling, only used if either \code{clusters.data} or
+#'   \code{landmarks.data} are provided
 #' @export
 #'
-write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.name) {
+write_scaffold_output <- function(G, out.dir, out.name, clusters.data = NULL, landmarks.data = NULL, downsample.to = 1000) {
     dir.create(out.dir, recursive = TRUE, showWarnings = FALSE)
 
     # This is necessary because igraph does not seem to handle NA's correctly when writing graphML
@@ -410,19 +409,37 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
 
     igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
 
+    if(!is.null(clusters.data)) {
+        message(sprintf("Downsampling to %d events", downsample.to))
+        clusters.data <- downsample_by(clusters.data, "cellType", downsample.to)
+        write_clusters_data(clusters.data, out.name, out.dir)
+    }
 
-    write_clusters_data(cluster.data, out.name, out.dir)
+    if(!is.null(landmarks.data))
+        write_landmarks_data(landmarks.data, out.dir, downsample.to)
 
-    landmark.data.dir <- file.path(out.dir, "landmarks_data")
-    dir.create(landmark.data.dir, recursive = TRUE, showWarnings = FALSE)
-
-    plyr::d_ply(landmarks.data$downsampled.data, ~cellType, function(x) {
-        saveRDS(x, file = file.path(landmark.data.dir, sprintf("%s.rds", x$cellType[1])))
-    })
     return(invisible(NULL))
 }
 
 
+#' Write landmarks data
+#'
+#' @param landmarks.data The landmarks data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
+#' @param out.dir The output directory
+#' @param downsample.to The number of events to be used as downsampling target
+#'
+#'
+write_landmarks_data <- function(landmarks.data, out.dir, downsample.to = 1000) {
+
+    landmark.data.dir <- file.path(out.dir, "landmarks_data")
+    dir.create(landmark.data.dir, recursive = TRUE, showWarnings = FALSE)
+    downsampled.data <- downsample_by(landmarks.data$landmarks.data, "cellType", downsample.to)
+
+    plyr::d_ply(downsampled.data, ~cellType, function(x) {
+        saveRDS(x, file = file.path(landmark.data.dir, sprintf("%s.rds", x$cellType[1])))
+    })
+
+}
 
 #' High level wrapper for performing a Scaffold analysis
 #'
@@ -434,10 +451,17 @@ write_scaffold_output <- function(G, cluster.data, landmarks.data, out.dir, out.
 #' @param landmarks.data The landmarks data as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
 #' @param col.names A character vector of column (i.e. marker) names to be used for the analysis. These columns have to be present in all the files
 #' @param out.dir The name of the output directory
+#' @param process.clusters.data If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
+#'   each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
+#'   data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
+#'   will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
+#'   but it is not strictly necessary to create the graph.
+#' @param downsample.to The number of events to target for downsampling when processing the clusters data. This is only used if
+#'   \code{process.cluster.data == TRUE} and it does not affect the computation as this data is only used for downstream visualization
 #' @param ... Additional parameters passed to \code{\link{get_scaffold_map}}
 #'
 #' @export
-run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", ...) {
+run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", process.clusters.data = TRUE, downsample.to = 1000, ...) {
     G.landmarks <- NULL
 
     for(f in files.list) {
@@ -448,14 +472,22 @@ run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.name
         tab <- tab[!apply(tab[, col.names], 1, function(x) {all(x == 0)}),]
 
         scaffold.res <- get_scaffold_map(tab, col.names, landmarks.data$tab.landmarks, G.landmarks, ...)
-        cluster.data <- readRDS(gsub("txt$", "all_events.rds", f))
-        cluster.data <- downsample_by(cluster.data, "cellType", 1000)
-        f <- gsub(".clustered.txt", "", f)
 
-        write_scaffold_output(scaffold.res$G.complete, cluster.data, landmarks.data, out.dir, f)
+        out.name <- gsub(".clustered.txt", "", f)
+
+        if(process.clusters.data) {
+            clusters.data <- readRDS(gsub("txt$", "all_events.rds", f))
+            write_scaffold_output(scaffold.res$G.complete, out.dir, out.name, clusters.data = clusters.data, downsample.to = downsample.to)
+
+        }
+        else
+            write_scaffold_output(scaffold.res$G.complete, out.dir, out.name)
 
         G.landmarks <- scaffold.res$G.landmarks
     }
+
+    if(process.clusters.data)
+        write_landmarks_data(landmarks.data, out.dir, downsample.to)
 
     return(invisible(NULL))
 }

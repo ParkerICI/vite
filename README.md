@@ -32,7 +32,7 @@ devtools::install_github("ParkerICI/scfeatures")
 
 This package enables the analysis of single-cell data using graphs, both unsupervised graphs as well as scaffold maps. While the package is designed to work with clusters generated from the [scfeatures](https://github.com/ParkerICI/scfeatures), any kind of tabular input data can be used as input
 
-The documentation of each function can be accessed directly within R. The following snippet demonstrate typical usage
+The documentation of each function can be accessed directly within R. The following snippet demonstrate typical usage. Please refer to the full documentation for a complete breakdown of all the options
 
 ### Creating an unsupervised graph
 
@@ -54,9 +54,27 @@ col.names <- c("foo", "bar", "foobar")
 G <- scgraphs::get_unsupervised_graph_from_files(input.files, metadata.tab = metadata.tab, 
             metadata.filename.col = "filename", col.names = col.names, filtering.threshold = 15)
 
-# Write the resulting graph in graphml format. The Gephi software package (https://gephi.org/) is an excellent 
-# solution to interactively manipulate the data
+# Write the resulting graph in graphml format. 
 igraph::write.graph(G, "unsupervised.graphml", format = "grpahml")
 
+```
+
+### Running a scaffold analysis
+
+This code snippet demonstrates how to construct scaffold maps. This assumes that the data for the landmark nodes, i.e. the gated populations, is in a subfolder called `gated`. The gated populations have to be provided as single FCS files (one for each population). The software will split the name of the FCS files using `"_"` as separator and the last field will be used as the population name. For instance if a file is called `foo_bar_foobar_Bcells.fcs` the corresponding population will be called `Bcells` in the scaffold analysis.
+
+
+```R
+# Use as input files that have been generated using scfeatures
+input.files <- c("A.clustered.txt", "B.clustered.txt")
+
+# Define which columns contain variables that are going to be used to calculate similarities between the nodes
+col.names <- c("foo", "bar", "foobar")
+
+# Load the data for the landmarks
+landmarks.data <- load_landmarks_from_dir("gated/", asinh.cofactor = 5, transform.data = T)
+    
+# Run the analysis. By default results will be save in a directory called "scaffold_result"
+run_scaffold_analysis(input.files, input.files[1], landmarks.data, col.names)
 ```
 

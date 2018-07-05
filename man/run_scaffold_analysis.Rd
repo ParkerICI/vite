@@ -5,7 +5,8 @@
 \title{High level wrapper for performing a Scaffold analysis}
 \usage{
 run_scaffold_analysis(files.list, ref.file, landmarks.data, col.names,
-  out.dir = "scaffold_result", ...)
+  out.dir = "scaffold_result", process.clusters.data = TRUE,
+  downsample.to = 1000, ...)
 }
 \arguments{
 \item{files.list}{Character vector. The list of files to process}
@@ -18,6 +19,15 @@ the position of the landmarks in all subsequent maps)}
 \item{col.names}{A character vector of column (i.e. marker) names to be used for the analysis. These columns have to be present in all the files}
 
 \item{out.dir}{The name of the output directory}
+
+\item{process.clusters.data}{If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
+each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
+data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
+will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
+but it is not strictly necessary to create the graph.}
+
+\item{downsample.to}{The number of events to target for downsampling when processing the clusters data. This is only used if
+\code{process.cluster.data == TRUE} and it does not affect the computation as this data is only used for downstream visualization}
 
 \item{...}{Additional parameters passed to \code{\link{get_scaffold_map}}}
 }

@@ -18,7 +18,7 @@ is applied}
 \value{
 Returns a list with the following elements:
   \itemize{
-    \item{\code{downsampled.data}}: a \code{data.frame} containing the data, downsampled to a fixed number of events
+    \item{\code{landmarks.data}}: a \code{data.frame} containing the entirety of the data
     \item{\code{tab.landmarks}}: a \code{data.frame} with the data for the landmark nodes. Each row is a separate landmark
       population, and the columns correspond to the median expression values of each marker. The \code{data.frame} also
       contains a column called \code{cellType} which contains the name of the corresponding landmark. In order to derive

@@ -4,24 +4,29 @@
 \alias{write_scaffold_output}
 \title{Write the result of a Scaffold analysis}
 \usage{
-write_scaffold_output(G, cluster.data, landmarks.data, out.dir, out.name)
+write_scaffold_output(G, out.dir, out.name, clusters.data = NULL,
+  landmarks.data = NULL, downsample.to = 1000)
 }
 \arguments{
 \item{G}{An \code{igraph} object representing the Scaffold map}
 
-\item{cluster.data}{A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
-corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
-for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
-to the \code{"all_events.rds"} output file}
-
-\item{landmarks.data}{The landmarls data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}}
-
 \item{out.dir}{The name of the output directory}
 
 \item{out.name}{The name of the output Scaffold map (The extensions \code{".graphml"} will be added to this name)}
+
+\item{clusters.data}{A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
+corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
+for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
+to the \code{"all_events.rds"} output file. If this is \code{NULL} no clusters data is written}
+
+\item{landmarks.data}{The landmarks data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
+If this is \code{NULL} no landmarks data is written}
+
+\item{downsample.to}{The number of events to target for downsampling, only used if either \code{clusters.data} or
+\code{landmarks.data} are provided}
 }
 \description{
 This function writes the result of a Scaffold analysis. This includes both the Scaffold map itself as a
-\code{graphml} file, as well downsampled single-cell data for both the clusters and the landmarks
-that can be used for plotting
+\code{graphml} file, as well as (optionally) downsampled single-cell data for both the clusters and the landmarks
+that can be used for visualization
 }

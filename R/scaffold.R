@@ -473,7 +473,7 @@ run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.name
 
         scaffold.res <- get_scaffold_map(tab, col.names, landmarks.data$tab.landmarks, G.landmarks, ...)
 
-        out.name <- gsub(".clustered.txt", "", f)
+        out.name <- gsub(".clustered.txt", "", basename(f))
 
         if(process.clusters.data) {
             clusters.data <- readRDS(gsub("txt$", "all_events.rds", f))

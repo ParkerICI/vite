@@ -1,7 +1,10 @@
 shinyUI(
  navbarPage("scgraphs",
-        tabPanel("Run Scaffold analysis",
+        tabPanel("Generate Scaffold map",
             uiOutput("scaffoldUI")
+        ),
+        tabPanel("Generate unsupervised graph",
+            uiOutput("unsupervisedUI")
         )
     )
 

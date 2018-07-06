@@ -1,6 +1,37 @@
 
+render_unsupervised_ui <- function(working.directory, ...) {renderUI({
+    files.list <- list.files(path = working.directory, pattern = "*.clustered.txt$")
 
-render_scaffold_ui <- function(working.directory, ...){renderUI({
+    fluidPage(
+        fluidRow(
+            column(6,
+                selectInput("unsupervisedui_markers_file", "Load marker names from file", choices = c("", list.files(path = working.directory, pattern = "*.clustered.txt$")), width = "100%"),
+                selectInput("unsupervisedui_markers", "Choose the markers to use for the anlaysis", choices = c(""), multiple = T, width = "100%"),
+                selectInput("unsupervisedui_files_list", label = "Files to include", choices = files.list, selected = files.list,
+                               multiple = T, width = "100%")
+            )
+        ),
+        fluidRow(
+            column(6,
+                checkboxInput("unsupervisedui_include_metadata", "Include metadata file"),
+                conditionalPanel(condition = "input.unsupervisedui_include_metadata",
+                    actionButton("unsupervisedui_select_metadata", "Select metadata file"),
+                    verbatimTextOutput("unsupervisedui_metadata_file", placeholder = TRUE)
+                )
+            )
+        ),
+        fluidRow(
+            column(6,
+                numericInput("unsupervisedui_filtering_threshold", "Edge filtering threshold", 15, min = 1),
+                textInput("unsupervisedui_out_name", "Output file name (the extension .graphml will be added automatically)", width = "100%"),
+                actionButton("unsupervisedui_start_analysis", "Start analysis")
+            )
+        )
+    )
+})}
+
+
+render_scaffold_ui <- function(working.directory, ...) {renderUI({
     fluidPage(
         fluidRow(
             column(6,
@@ -15,7 +46,7 @@ render_scaffold_ui <- function(working.directory, ...){renderUI({
             column(6,
                 p("Select landmarks data (select any file in the directory, and all the other FCS files will be loaded as well)"),
                 actionButton("scaffoldui_select_landmarks_dir", "Select Landmarks directory"),
-                verbatimTextOutput("scaffoldui_landmarks_dir"),
+                verbatimTextOutput("scaffoldui_landmarks_dir", placeholder = TRUE),
                 fluidRow(
                     column(6,
                         checkboxInput("scaffoldui_transform_landmarks_data", "Transform landmarks data", value = TRUE)
@@ -46,12 +77,77 @@ render_scaffold_ui <- function(working.directory, ...){renderUI({
 shinyServer(function(input, output, session) {
     working.directory <- dirname(file.choose())
     output$scaffoldUI <- render_scaffold_ui(working.directory, input, output, session)
+    output$unsupervisedUI <- render_unsupervised_ui(working.directory, input, output, session)
+
+
+    # Unsupervised UI functions
+    unsupervisedui.reactive.values <- reactiveValues(metadata.file = NULL)
+
+    output$unsupervisedui_metadata_file <- renderText({
+        unsupervisedui.reactive.values$metadata.file
+    })
+
+    observeEvent(input$unsupervisedui_select_metadata, {
+        unsupervisedui.reactive.values$metadata.file <- file.choose()
+    })
     
+    observe({
+        if(!is.null(input$unsupervisedui_markers_file) && input$unsupervisedui_markers_file != "") {
+                tab <- read.table(file.path(working.directory, input$unsupervisedui_markers_file), header = TRUE, sep = "\t", check.names = FALSE)
+                updateSelectInput(session, "unsupervisedui_markers", choices = names(tab))
+            }
+    })
+
+    observeEvent(input$unsupervisedui_start_analysis, {
+        isolate({
+            if(is.null(input$unsupervisedui_out_name) || input$unsupervisedui_out_name == "") {
+                showModal(modalDialog(
+                    "Please enter a name for the output"
+                ))
+                return(NULL)
+            }
+
+            showModal(modalDialog(
+                "Analysis started, please wait..."
+            ))
+
+
+            files.list <- file.path(working.directory, input$unsupervisedui_files_list)
+            metadata.tab <- NULL
+            
+            if(!is.null(input$unsupervisedui_metadata_file) && input$unsupervisedui_metadata_file != "")
+                metadata.tab <- read.table(input$unsupervisedui_metadata_file, header = TRUE, sep = "\t", check.names = FALSE, stringsAsFactors = FALSE)
+            
+            G <- scgraphs::get_unsupervised_graph_from_files(
+                files.list = files.list,
+                col.names = input$unsupervisedui_markers,
+                filtering.threshold = input$unsupervisedui_filtering_threshold,
+                metadata.tab = metadata.tab,
+                metadata.filename.col = "filename"
+            )
+
+            out.name <- file.path(working.directory, sprintf("%s.graphml", input$unsupervisedui_out_name))
+            igraph::write.graph(G, out.name, format = "graphml")
+
+            showModal(modalDialog(
+                "Analysis Finished", br(),
+                sprintf("The ouptut file is located at are located at %s", out.name)
+            ))
+
+        })
+
+
+    })
+
+
+
+
+    # Scaffold UI functions
     scaffoldui.reactive.values <- reactiveValues(landmarks.dir = NULL)
 
     observe({
         if(!is.null(input$scaffoldui_reference) && input$scaffoldui_reference != "") {
-                tab <- read.table(paste(working.directory, input$scaffoldui_reference, sep = "/"), header = T, sep = "\t", check.names = F)
+                tab <- read.table(file.path(working.directory, input$scaffoldui_reference), header = T, sep = "\t", check.names = F)
                 updateSelectInput(session, "scaffoldui_markers", choices = names(tab))
                 updateSelectInput(session, "scaffoldui_markers_inter_cluster", choices = names(tab))
             }
@@ -63,10 +159,7 @@ shinyServer(function(input, output, session) {
     })
 
     output$scaffoldui_landmarks_dir <- renderText({
-        if(is.null(scaffoldui.reactive.values$landmarks.dir))
-            " "
-        else
-            scaffoldui.reactive.values$landmarks.dir
+        scaffoldui.reactive.values$landmarks.dir
     })
 
     observeEvent(input$scaffoldui_start_analysis, {

@@ -59,7 +59,7 @@ igraph::write.graph(G, "unsupervised.graphml", format = "grpahml")
 
 ```
 
-### Running a scaffold analysis
+### Running a Scaffold analysis
 
 This code snippet demonstrates how to construct scaffold maps. This assumes that the data for the landmark nodes, i.e. the gated populations, is in a subfolder called `gated`. The gated populations have to be provided as single FCS files (one for each population). The software will split the name of the FCS files using `"_"` as separator and the last field will be used as the population name. For instance if a file is called `foo_bar_foobar_Bcells.fcs` the corresponding population will be called `Bcells` in the scaffold analysis.
 
@@ -85,3 +85,13 @@ By the default the output of the analysis will be saved in a folder called `scaf
 These folders contain downsampled single-cell data for the clusters and landmarks, to be used for visualization. The `clusters_data` folder will contain a separate sub-folder for each `graphml` file, containing the data specific to that sample. The data is split in multiple `rds` files, one for each cluster (or landmark in `landmarks_data`). 
 
 If the Scaffold analysis was constructed from data that was pooled before clustering (i.e. using `scfeatures::cluster_fcs_files_groups`), the `clusters_data` folder will also contain a subfolder called `pooled`, containing the pooled data, in addition to the sample-specific folders described above.
+
+### Using the GUI
+
+A GUI is available to launch either an unsupervised graph analysis or a Scaffold analysis. The GUI allows you to specify all the input options in a graphical environment, instead of having to write R code.
+
+To launch the GUI type the following in your R console
+
+```R
+scgraphs::scgraphs_GUI()
+```

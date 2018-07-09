@@ -30,7 +30,7 @@ devtools::install_github("ParkerICI/scfeatures")
 
 ## Usage
 
-This package enables the analysis of single-cell data using graphs, both unsupervised graphs as well as scaffold maps. While the package is designed to work with clusters generated from the [scfeatures](https://github.com/ParkerICI/scfeatures), any kind of tabular input data can be used as input
+This package enables the analysis of single-cell data using graphs, both unsupervised graphs as well as scaffold maps. While the package is designed to work with clusters generated from the [scfeatures](https://github.com/ParkerICI/scfeatures) package, any kind of tabular input data can be used as input
 
 The documentation of each function can be accessed directly within R. The following snippet demonstrate typical usage. Please refer to the full documentation for a complete breakdown of all the options
 
@@ -78,3 +78,10 @@ landmarks.data <- load_landmarks_from_dir("gated/", asinh.cofactor = 5, transfor
 run_scaffold_analysis(input.files, input.files[1], landmarks.data, col.names)
 ```
 
+#### Scaffold output
+
+By the default the output of the analysis will be saved in a folder called `scaffold_result`. The directory will contain a `graphml` file for each Scaffold map and two sub-folders called `clusters_data` and `landmarks_data`.
+
+These folders contain downsampled single-cell data for the clusters and landmarks, to be used for visualization. The `clusters_data` folder will contain a separate sub-folder for each `graphml` file, containing the data specific to that sample. The data is split in multiple `rds` files, one for each cluster (or landmark in `landmarks_data`). 
+
+If the Scaffold analysis was constructed from data that was pooled before clustering (i.e. using `scfeatures::cluster_fcs_files_groups`), the `clusters_data` folder will also contain a subfolder called `pooled`, containing the pooled data, in addition to the sample-specific folders described above.

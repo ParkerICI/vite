@@ -90,9 +90,9 @@ void filter_matrix_by_rank(NumericMatrix m, unsigned int threshold) {
 
 m <- matrix(nrow = 9000, ncol = 9000, data = rnorm(9000 ^ 2))
 
-kk <- scgraphs:::filter_similarity_matrix_by_rank(m, 2)
+kk <- vite:::filter_similarity_matrix_by_rank(m, 2)
 
-scgraphs:::filter_similarity_matrix_by_rank_cpp(m, 2)
+vite:::filter_similarity_matrix_by_rank_cpp(m, 2)
 
 
 all(kk == m)

@@ -21,23 +21,23 @@ source("http://bioconductor.org/biocLite.R")
 biocLite("flowCore")
 ```
 
-4. install `scgraphs` with the following command
+4. install `vite` with the following command
 
 ```R
-devtools::install_github("ParkerICI/scfeatures")
+devtools::install_github("ParkerICI/vite")
 ```
 
 
 ## Usage
 
-This package enables the analysis of single-cell data using graphs, both unsupervised graphs as well as scaffold maps. While the package is designed to work with clusters generated from the [scfeatures](https://github.com/ParkerICI/scfeatures) package, any kind of tabular input data can be used as input
+This package enables the analysis of single-cell data using graphs, both unsupervised graphs as well as scaffold maps. While the package is designed to work with clusters generated from the [grappolo](https://github.com/ParkerICI/grappolo) package, any kind of tabular input data can be used as input
 
 The documentation of each function can be accessed directly within R. The following snippet demonstrate typical usage. Please refer to the full documentation for a complete breakdown of all the options
 
 ### Creating an unsupervised graph
 
 ```R
-# Use as input files that have been generated using scfeatures
+# Use as input files that have been generated using grappolo
 input.files <- c("A.clustered.txt", "B.clustered.txt")
 
 # Optional: Define a table of sample-level metadata. All the nodes derived from the corresponding cluster file will
@@ -51,7 +51,7 @@ col.names <- c("foo", "bar", "foobar")
 # The clusters in each one of the input files will be pooled together in a single graph
 # This function also performs graph clustering by community detection. The community assignments are contained in
 # the "community_id" vertex property of the resulting graph
-G <- scgraphs::get_unsupervised_graph_from_files(input.files, metadata.tab = metadata.tab, 
+G <- vite::get_unsupervised_graph_from_files(input.files, metadata.tab = metadata.tab, 
             metadata.filename.col = "filename", col.names = col.names, filtering.threshold = 15)
 
 # Write the resulting graph in graphml format. 
@@ -65,7 +65,7 @@ This code snippet demonstrates how to construct scaffold maps. This assumes that
 
 
 ```R
-# Use as input files that have been generated using scfeatures
+# Use as input files that have been generated using grappolo
 input.files <- c("A.clustered.txt", "B.clustered.txt")
 
 # Define which columns contain variables that are going to be used to calculate similarities between the nodes
@@ -84,7 +84,7 @@ By the default the output of the analysis will be saved in a folder called `scaf
 
 These folders contain downsampled single-cell data for the clusters and landmarks, to be used for visualization. The `clusters_data` folder will contain a separate sub-folder for each `graphml` file, containing the data specific to that sample. The data is split in multiple `rds` files, one for each cluster (or landmark in `landmarks_data`). 
 
-If the Scaffold analysis was constructed from data that was pooled before clustering (i.e. using `scfeatures::cluster_fcs_files_groups`), the `clusters_data` folder will also contain a subfolder called `pooled`, containing the pooled data, in addition to the sample-specific folders described above.
+If the Scaffold analysis was constructed from data that was pooled before clustering (i.e. using `grappolo::cluster_fcs_files_groups`), the `clusters_data` folder will also contain a subfolder called `pooled`, containing the pooled data, in addition to the sample-specific folders described above.
 
 ### Using the GUI
 
@@ -93,7 +93,7 @@ A GUI is available to launch either an unsupervised graph analysis or a Scaffold
 To launch the GUI type the following in your R console
 
 ```R
-scgraphs::scgraphs_GUI()
+vite::vite_GUI()
 ```
 
 When the GUI starts you will be prompted to select a working directory. This directory must contain all the files that you want to include in the analysis. Select any file in that directory, and the directory that contains the file will be selected as working directory.

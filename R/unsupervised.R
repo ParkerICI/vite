@@ -117,7 +117,7 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #'   as specified in \code{files.list}. Moreover if \code{use.basename} is \code{TRUE} the matching with the file names contained
 #'   in \code{metadata.tab} will be based on the \code{basename} only
 #' @param process.clusters.data If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
-#'   each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
+#'   each file in \code{files.list} (see the Documentation of \code{grappolo::cluster_fcs_files}). This file contains single-cell
 #'   data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
 #'   will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
 #'   but it is not strictly necessary to create the graph. If \code{use.basename} is \code{TRUE} the \code{basename} of the files in
@@ -134,7 +134,7 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
     tab <- NULL
     ret <- list(graphs = list())
 
-    common.cols <- scfeatures::get_common_columns(files.list, file.type = "txt")
+    common.cols <- grappolo::get_common_columns(files.list, file.type = "txt")
 
     if(use.basename && !is.null(metadata.tab) && !is.null(metadata.filename.col))
         metadata.tab[, metadata.filename.col] <- basename(metadata.tab[, metadata.filename.col])

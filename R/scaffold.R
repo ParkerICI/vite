@@ -47,7 +47,7 @@ load_landmarks <- function(files.list, asinh.cofactor, transform.data, ...) {
         population <- tail(strsplit(f, "_")[[1]], n = 1)
         population <- gsub(".fcs", "", population)
         fcs <- flowCore::read.FCS(f, ...)
-        tab <- scfeatures::convert_fcs(fcs, asinh.cofactor, transform.data, clip.at.zero = T)
+        tab <- grappolo::convert_fcs(fcs, asinh.cofactor, transform.data, clip.at.zero = T)
 
         tab <- data.frame(tab, cellType = population, stringsAsFactors = F, check.names = F)
         res <- rbind(res, tab)
@@ -386,7 +386,7 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
 #' @param out.name The name of the output Scaffold map (The extensions \code{".graphml"} will be added to this name)
 #' @param clusters.data A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
 #'   corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
-#'   for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
+#'   for each cell. If the data was clustered with the \code{grappolo} package, this \code{data.frame} corresponds
 #'   to the \code{"all_events.rds"} output file. If this is \code{NULL} no clusters data is written
 #' @param landmarks.data The landmarks data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}
 #'   If this is \code{NULL} no landmarks data is written
@@ -452,7 +452,7 @@ write_landmarks_data <- function(landmarks.data, out.dir, downsample.to = 1000) 
 #' @param col.names A character vector of column (i.e. marker) names to be used for the analysis. These columns have to be present in all the files
 #' @param out.dir The name of the output directory
 #' @param process.clusters.data If this is \code{TRUE} this function will look for a file with extension \code{.all_events.rds} for
-#'   each file in \code{files.list} (see the Documentation of \code{scfeatures::cluster_fcs_files}). This file contains single-cell
+#'   each file in \code{files.list} (see the Documentation of \code{grappolo::cluster_fcs_files}). This file contains single-cell
 #'   data (i.e. each row represent a cell, as opposed to the files in \code{files.list} where each row represents a cluster). Each file
 #'   will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
 #'   but it is not strictly necessary to create the graph.

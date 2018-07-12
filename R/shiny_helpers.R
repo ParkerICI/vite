@@ -10,6 +10,6 @@
 #' @param ... Additional arguments passed to shiny::runApp
 #' @export
 #'
-scgraphs_GUI <- function(...) {
-    shiny::runApp(appDir = file.path(system.file(package = "scgraphs"), "shinyGUI"), ...)
+vite_GUI <- function(...) {
+    shiny::runApp(appDir = file.path(system.file(package = "vite"), "shinyGUI"), ...)
 }

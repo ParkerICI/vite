@@ -1,9 +1,9 @@
-#' scgraphs
+#' vite
 #'
-#' @name scgraphs
+#' @name vite
 #' @import Rcpp
 #' @importFrom igraph V E V<- E<-
-#' @useDynLib scgraphs
+#' @useDynLib vite
 #'
 #'
 

@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // filter_matrix
 void filter_matrix(NumericMatrix m, double threshold);
-RcppExport SEXP _scgraphs_filter_matrix(SEXP mSEXP, SEXP thresholdSEXP) {
+RcppExport SEXP _vite_filter_matrix(SEXP mSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
@@ -18,7 +18,7 @@ END_RCPP
 }
 // filter_matrix_by_rank
 void filter_matrix_by_rank(NumericMatrix m, unsigned int threshold);
-RcppExport SEXP _scgraphs_filter_matrix_by_rank(SEXP mSEXP, SEXP thresholdSEXP) {
+RcppExport SEXP _vite_filter_matrix_by_rank(SEXP mSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type m(mSEXP);
@@ -29,7 +29,7 @@ END_RCPP
 }
 // layout_forceatlas2Cpp
 void layout_forceatlas2Cpp(NumericMatrix lay, NumericVector F_att_orig, NumericVector mass, NumericVector nodes_size, NumericMatrix edge_list, NumericVector avg_displ, double kgrav, unsigned int iter, bool prevent_overlap, LogicalVector fixed, NumericVector max_displ, float stopping_tolerance, bool barnes_hut);
-RcppExport SEXP _scgraphs_layout_forceatlas2Cpp(SEXP laySEXP, SEXP F_att_origSEXP, SEXP massSEXP, SEXP nodes_sizeSEXP, SEXP edge_listSEXP, SEXP avg_displSEXP, SEXP kgravSEXP, SEXP iterSEXP, SEXP prevent_overlapSEXP, SEXP fixedSEXP, SEXP max_displSEXP, SEXP stopping_toleranceSEXP, SEXP barnes_hutSEXP) {
+RcppExport SEXP _vite_layout_forceatlas2Cpp(SEXP laySEXP, SEXP F_att_origSEXP, SEXP massSEXP, SEXP nodes_sizeSEXP, SEXP edge_listSEXP, SEXP avg_displSEXP, SEXP kgravSEXP, SEXP iterSEXP, SEXP prevent_overlapSEXP, SEXP fixedSEXP, SEXP max_displSEXP, SEXP stopping_toleranceSEXP, SEXP barnes_hutSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type lay(laySEXP);
@@ -51,13 +51,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_scgraphs_filter_matrix", (DL_FUNC) &_scgraphs_filter_matrix, 2},
-    {"_scgraphs_filter_matrix_by_rank", (DL_FUNC) &_scgraphs_filter_matrix_by_rank, 2},
-    {"_scgraphs_layout_forceatlas2Cpp", (DL_FUNC) &_scgraphs_layout_forceatlas2Cpp, 13},
+    {"_vite_filter_matrix", (DL_FUNC) &_vite_filter_matrix, 2},
+    {"_vite_filter_matrix_by_rank", (DL_FUNC) &_vite_filter_matrix_by_rank, 2},
+    {"_vite_layout_forceatlas2Cpp", (DL_FUNC) &_vite_layout_forceatlas2Cpp, 13},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_scgraphs(DllInfo *dll) {
+RcppExport void R_init_vite(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

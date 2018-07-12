@@ -118,7 +118,7 @@ shinyServer(function(input, output, session) {
             if(!is.null(input$unsupervisedui_metadata_file) && input$unsupervisedui_metadata_file != "")
                 metadata.tab <- read.table(input$unsupervisedui_metadata_file, header = TRUE, sep = "\t", check.names = FALSE, stringsAsFactors = FALSE)
             
-            G <- scgraphs::get_unsupervised_graph_from_files(
+            G <- vite::get_unsupervised_graph_from_files(
                 files.list = files.list,
                 col.names = input$unsupervisedui_markers,
                 filtering.threshold = input$unsupervisedui_filtering_threshold,
@@ -206,7 +206,7 @@ shinyServer(function(input, output, session) {
             if(input$scaffoldui_ew_influence_type == "Fixed")            
                 args.list <- c(args.list, list(ew.influence = input$scaffoldui_ew_influence))
             
-            do.call(scgraphs::run_scaffold_analysis, args.list)
+            do.call(vite::run_scaffold_analysis, args.list)
 
             showModal(modalDialog(
                 "Analysis Finished", br(),

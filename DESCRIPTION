@@ -1,4 +1,4 @@
-Package: scgraphs
+Package: vite
 Type: Package
 Title: Analyzing single-cell data using graphs
 Version: 0.2.0
@@ -8,7 +8,7 @@ Description: This package is for visualizing and analyzing high-dimensional
 Imports:
     Rcpp,
     igraph
-Remotes: ParkerICI/scfeatures
+Remotes: ParkerICI/grappolo
 LinkingTo: Rcpp
 License: GPL v3
 Encoding: UTF-8

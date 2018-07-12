@@ -1,5 +1,5 @@
 shinyUI(
- navbarPage("scgraphs",
+ navbarPage("vite",
         tabPanel("Generate Scaffold map",
             uiOutput("scaffoldUI")
         ),

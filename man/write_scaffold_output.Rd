@@ -16,7 +16,7 @@ write_scaffold_output(G, out.dir, out.name, clusters.data = NULL,
 
 \item{clusters.data}{A \code{data.frame} containing the single-cell clustered data. Each row of this \code{data.frame}
 corresponds to a cell. The \code{data.frame} must contain a column called \code{cellType} indicating cluster membership
-for each cell. If the data was clustered with the \code{scfeatures} package, this \code{data.frame} corresponds
+for each cell. If the data was clustered with the \code{grappolo} package, this \code{data.frame} corresponds
 to the \code{"all_events.rds"} output file. If this is \code{NULL} no clusters data is written}
 
 \item{landmarks.data}{The landmarks data, as returned by \code{\link{load_landmarks}} or \code{\link{load_landmarks_from_dir}}

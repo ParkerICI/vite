@@ -15,7 +15,7 @@
 #'
 #'
 filter_matrix <- function(m, threshold) {
-    invisible(.Call('_scgraphs_filter_matrix', PACKAGE = 'scgraphs', m, threshold))
+    invisible(.Call('_vite_filter_matrix', PACKAGE = 'vite', m, threshold))
 }
 
 #' Filter a matrix based on the rank of the values in each row
@@ -32,10 +32,10 @@ filter_matrix <- function(m, threshold) {
 #' @export
 #'
 filter_matrix_by_rank <- function(m, threshold) {
-    invisible(.Call('_scgraphs_filter_matrix_by_rank', PACKAGE = 'scgraphs', m, threshold))
+    invisible(.Call('_vite_filter_matrix_by_rank', PACKAGE = 'vite', m, threshold))
 }
 
 layout_forceatlas2Cpp <- function(lay, F_att_orig, mass, nodes_size, edge_list, avg_displ, kgrav, iter, prevent_overlap, fixed, max_displ, stopping_tolerance, barnes_hut) {
-    invisible(.Call('_scgraphs_layout_forceatlas2Cpp', PACKAGE = 'scgraphs', lay, F_att_orig, mass, nodes_size, edge_list, avg_displ, kgrav, iter, prevent_overlap, fixed, max_displ, stopping_tolerance, barnes_hut))
+    invisible(.Call('_vite_layout_forceatlas2Cpp', PACKAGE = 'vite', lay, F_att_orig, mass, nodes_size, edge_list, avg_displ, kgrav, iter, prevent_overlap, fixed, max_displ, stopping_tolerance, barnes_hut))
 }
 

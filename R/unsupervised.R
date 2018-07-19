@@ -135,6 +135,7 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
     ret <- list(graphs = list())
 
     common.cols <- grappolo::get_common_columns(files.list, file.type = "txt")
+    message(sprintf("The columns common to all input files are: %s", paste(common.cols, collapse = ",")))
 
     if(use.basename && !is.null(metadata.tab) && !is.null(metadata.filename.col))
         metadata.tab[, metadata.filename.col] <- basename(metadata.tab[, metadata.filename.col])

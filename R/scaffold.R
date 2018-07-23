@@ -407,7 +407,7 @@ write_scaffold_output <- function(G, out.dir, out.name, clusters.data = NULL, la
         G <- igraph::set.vertex.attribute(G, name = x, value = v)
     }
 
-    igraph::write.graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)), format = "graphml")
+    write_graph(G, file.path(out.dir, sprintf("%s.graphml", out.name)))
 
     if(!is.null(clusters.data)) {
         message(sprintf("Downsampling to %d events", downsample.to))
@@ -463,6 +463,9 @@ write_landmarks_data <- function(landmarks.data, out.dir, downsample.to = 1000) 
 #' @export
 run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", process.clusters.data = TRUE, downsample.to = 1000, ...) {
     G.landmarks <- NULL
+    # Put the ref.file in the first position
+    files.list <- files.list[files.list != ref.file]
+    files.list <- c(ref.file, files.list)
 
     for(f in files.list) {
         message(paste("Processing", f, sep = " "))

@@ -51,7 +51,7 @@ G <- vite::get_unsupervised_graph_from_files(input.files, metadata.tab = metadat
             metadata.filename.col = "filename", col.names = col.names, filtering.threshold = 15)
 
 # Write the resulting graph in graphml format. 
-igraph::write.graph(G, "unsupervised.graphml", format = "grpahml")
+vite::write_graph(G, "unsupervised.graphml")
 
 ```
 

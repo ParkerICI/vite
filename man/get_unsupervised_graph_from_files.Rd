@@ -18,7 +18,8 @@ the files. Only the common vertex properties will feature in the output graph}
 
 \item{metadata.tab}{Optional. If specified, a table of file-level metadata, to be added as vertex properties in the graph. Each row
 should specify metadata for a single file, with the columns of \code{metadata.tab} representing metadata values. All the vertices
-derived from that file will have the corresponding metadatata value}
+derived from that file will have the corresponding metadatata value. Please note that the names \code{name}, \code{Label}, \code{type}
+and \code{sample} are used internally by this package, and therfore cannot bs used as metadata vertex properties}
 
 \item{metadata.filename.col}{The name of the column in \code{metadata.tab} that contains the file name to be matched to the files
 in \code{files.list}}

@@ -109,7 +109,8 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #' @inheritParams get_unsupervised_graph
 #' @param metadata.tab Optional. If specified, a table of file-level metadata, to be added as vertex properties in the graph. Each row
 #'   should specify metadata for a single file, with the columns of \code{metadata.tab} representing metadata values. All the vertices
-#'   derived from that file will have the corresponding metadatata value
+#'   derived from that file will have the corresponding metadatata value. Please note that the names \code{name}, \code{Label}, \code{type}
+#'   and \code{sample} are used internally by this package, and therfore cannot bs used as metadata vertex properties
 #' @param metadata.filename.col The name of the column in \code{metadata.tab} that contains the file name to be matched to the files
 #'   in \code{files.list}
 #' @param use.basename The resulting graph will contain an additional vertex property called \code{sample} identifying which file
@@ -130,6 +131,8 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #' @export
 get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.threshold,
                                               metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE, process.clusters.data = TRUE, downsample.to = 1000) {
+    if(!is.null(metadata.tab) && c("sample", "name", "Label", "type") %in% names(metadata.tab))
+        stop("Metadata column names cannot include sample, name, Label or type")
 
     tab <- NULL
     ret <- list(graphs = list())
@@ -173,47 +176,4 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
 }
 
 
-# Add explanation of what happens in the different cases with or without the saample column, and the pooled issue
-#' Write clustering output
-#'
-#' @param clustered.data A \code{data.frame} containing the clustered data. Each row corresponds to cell. The \code{data.frame}
-#'   must include a column called \code{cellType}, indicating cluster membership
-#' @param base.name The base name for naming output files. This is only used if \code{clustered_data} does not contain
-#'   a column called \code{sample}. Otherwise the \code{sample} names are used for this purpose
-#' @param output.dir The output directory
-#'
-#' @export
-write_clusters_data <- function(clustered.data, base.name, output.dir = "./") {
-
-    cluster.data.dir <- file.path(output.dir, "clusters_data")
-    write.pooled <- FALSE
-
-
-    if(!is.null(clustered.data$sample)) {
-        sapply(unique(clustered.data$sample), function(x) {dir.create(file.path(cluster.data.dir, x), recursive = TRUE, showWarnings = FALSE)})
-        if(length(unique(clustered.data$sample)) > 1) {
-            dir.create(file.path(cluster.data.dir, "pooled"), recursive = TRUE, showWarnings = FALSE)
-            write.pooled <- TRUE
-        }
-    } else {
-        dir.create(file.path(cluster.data.dir, base.name), recursive = TRUE, showWarnings = FALSE)
-    }
-
-    plyr::d_ply(clustered.data, ~cellType, function(x) {
-        if(is.null(x$sample))
-            saveRDS(x, file = file.path(cluster.data.dir, base.name, sprintf("c%d.rds", x$cellType[1])))
-        else {
-            if(write.pooled)
-                saveRDS(x, file = file.path(cluster.data.dir, "pooled", sprintf("c%d.rds", x$cellType[1])))
-
-            plyr::d_ply(x, ~sample, function(df) {
-                saveRDS(df, file = file.path(cluster.data.dir, df$sample[1], sprintf("c%d.rds", df$cellType[1])))
-            })
-
-
-        }
-    })
-
-    return(invisible(NULL))
-}
 

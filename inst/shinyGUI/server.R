@@ -127,7 +127,7 @@ shinyServer(function(input, output, session) {
             )
 
             out.name <- file.path(working.directory, sprintf("%s.graphml", input$unsupervisedui_out_name))
-            igraph::write.graph(G, out.name, format = "graphml")
+            write_graph(G, out.name)
 
             showModal(modalDialog(
                 "Analysis Finished", br(),

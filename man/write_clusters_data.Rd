@@ -4,7 +4,8 @@
 \alias{write_clusters_data}
 \title{Write clustering output}
 \usage{
-write_clusters_data(clustered.data, base.name, output.dir = "./")
+write_clusters_data(clustered.data, base.name, output.dir = "./",
+  pooled.only = FALSE)
 }
 \arguments{
 \item{clustered.data}{A \code{data.frame} containing the clustered data. Each row corresponds to cell. The \code{data.frame}
@@ -14,10 +15,13 @@ must include a column called \code{cellType}, indicating cluster membership}
 \itemize{
   \item If \code{clustered_data} does not contain a column called \code{sample}
   \item If \code{clustered_data} represents a pooled clustering result (e.g. derived from \code{grappolo::cluster_fcs_files_groups}),
-    the pooled data will be written in a directory called pooled/\code{base.name}
+    the pooled data will be written in a directory called pooled/\code{base.name} (but see \code{pooled.only} below)
 }}
 
-\item{output.dir}{The output directory}
+\item{output.dir}{The output directory. A subfolder called \code{clusters_data} will be created in this directory, and all the
+data will be written into it}
+
+\item{pooled.only}{If this is true, only pooled data will be written and no sepearate \code{pooled} directory will be created}
 }
 \description{
 Write clustering output

@@ -158,8 +158,6 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
 
     G <- get_unsupervised_graph(tab, col.names, filtering.threshold)
 
-    #Add downsampling option
-
     if(process.clusters.data) {
         message("Processing clusters data...")
         for(f in files.list) {
@@ -168,7 +166,7 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
             tab <- downsample_by(tab, "cellType", downsample.to)
             if(use.basename)
                 f <- basename(f)
-            write_clusters_data(tab, f)
+            write_clusters_data(tab, f, pooled.only = TRUE)
         }
     }
 

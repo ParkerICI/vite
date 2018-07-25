@@ -1,7 +1,7 @@
 Package: vite
 Type: Package
 Title: Analyzing single-cell data using graphs
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: "Pier Federico Gherardini <pfgherardini@parkerici.org> [aut, cre]"
 Description: This is a package for visualization and analysis of high-dimensional
     single-cell data using graphs

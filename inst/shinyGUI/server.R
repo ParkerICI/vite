@@ -194,7 +194,7 @@ shinyServer(function(input, output, session) {
             out.dir <- file.path(working.directory, "scaffold_result")
             args.list <- list(
                     files.list = files.list,
-                    ref.file = input$scaffoldui_reference,
+                    ref.file = file.path(working.directory, input$scaffoldui_reference),
                     landmarks.data = landmarks.data,
                     col.names = input$scaffoldui_markers,
                     inter.cluster.weight.factor = input$scaffoldui_inter_cluster_weight,

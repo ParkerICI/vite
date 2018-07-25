@@ -123,6 +123,8 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #'   will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
 #'   but it is not strictly necessary to create the graph. If \code{use.basename} is \code{TRUE} the \code{basename} of the files in
 #'   \code{files.list} will be used for processing.
+#' @param clusters.data.out.dir Only used if \code{process.clusters.data == TRUE}. The output directory where the clusters data
+#'   will be written
 #' @param downsample.to The target number of events for downsampling. Only used if \code{process.clusters.data == TRUE}. This is only
 #'   used for downstream data visualization and does not affect the construction of the graph
 #'
@@ -130,7 +132,8 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #'
 #' @export
 get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.threshold,
-                                              metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE, process.clusters.data = TRUE, downsample.to = 1000) {
+                                        metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE, process.clusters.data = TRUE,
+                                        clusters.data.out.dir = "./", downsample.to = 1000) {
     if(!is.null(metadata.tab) && c("sample", "name", "Label", "type") %in% names(metadata.tab))
         stop("Metadata column names cannot include sample, name, Label or type")
 
@@ -166,7 +169,7 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
             tab <- downsample_by(tab, "cellType", downsample.to)
             if(use.basename)
                 f <- basename(f)
-            write_clusters_data(tab, f, pooled.only = TRUE)
+            write_clusters_data(tab, f, output.dir = clusters.data.out.dir, pooled.only = TRUE)
         }
     }
 

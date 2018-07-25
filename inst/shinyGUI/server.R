@@ -51,7 +51,7 @@ render_scaffold_ui <- function(working.directory, ...) {renderUI({
                     column(6,
                         checkboxInput("scaffoldui_transform_landmarks_data", "Transform landmarks data", value = TRUE)
                     ),
-                    column(6, 
+                    column(6,
                         conditionalPanel(condition = "input.scaffoldui_transform_landmarks_data",
                             numericInput("scaffoldui_asinh_cofactor", "Cofactor for asinh transformation", 5)
                         )
@@ -64,7 +64,7 @@ render_scaffold_ui <- function(working.directory, ...) {renderUI({
                 checkboxInput("scaffoldui_inter_cluster_connections", "Add inter-cluster connections", value = TRUE),
                 conditionalPanel(
                     condition = "input.scaffoldui_inter_cluster_connections == true",
-                    selectInput("scaffoldui_markers_inter_cluster", "Markers for inter-cluster connections (if different)", choices = c(""), multiple = T, width = "100%"), 
+                    selectInput("scaffoldui_markers_inter_cluster", "Markers for inter-cluster connections (if different)", choices = c(""), multiple = T, width = "100%"),
                     numericInput("scaffoldui_inter_cluster_weight", "Weight factor for inter-cluster connections", 0.7, min = 0, max = 10, step = 0.1)
                 ),
                 selectInput("scaffoldui_overlap_method", "Overlap resolution method", choices = c("Repel", "Expand")),
@@ -90,7 +90,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$unsupervisedui_select_metadata, {
         unsupervisedui.reactive.values$metadata.file <- file.choose()
     })
-    
+
     observe({
         if(!is.null(input$unsupervisedui_markers_file) && input$unsupervisedui_markers_file != "") {
                 tab <- read.table(file.path(working.directory, input$unsupervisedui_markers_file), header = TRUE, sep = "\t", check.names = FALSE)
@@ -114,16 +114,17 @@ shinyServer(function(input, output, session) {
 
             files.list <- file.path(working.directory, input$unsupervisedui_files_list)
             metadata.tab <- NULL
-            
+
             if(!is.null(input$unsupervisedui_metadata_file) && input$unsupervisedui_metadata_file != "")
                 metadata.tab <- read.table(input$unsupervisedui_metadata_file, header = TRUE, sep = "\t", check.names = FALSE, stringsAsFactors = FALSE)
-            
+
             G <- vite::get_unsupervised_graph_from_files(
                 files.list = files.list,
                 col.names = input$unsupervisedui_markers,
                 filtering.threshold = input$unsupervisedui_filtering_threshold,
                 metadata.tab = metadata.tab,
-                metadata.filename.col = "filename"
+                metadata.filename.col = "filename",
+                clusters.data.out.dir = working.directory
             )
 
             out.name <- file.path(working.directory, sprintf("%s.graphml", input$unsupervisedui_out_name))
@@ -177,11 +178,11 @@ shinyServer(function(input, output, session) {
             ))
 
             files.list <- list.files(working.directory, pattern = "*.clustered.txt$", full.names = TRUE)
-            landmarks.data <- load_landmarks_from_dir(scaffoldui.reactive.values$landmarks.dir, 
+            landmarks.data <- load_landmarks_from_dir(scaffoldui.reactive.values$landmarks.dir,
                 input$scaffoldui_asinh_cofactor, input$scaffoldui_transform_landmarks_data)
 
             inter.cluster.col.names <- NULL
-            
+
             if(input$scaffoldui_inter_cluster_connections) {
                 if(length(input$scaffoldui_markers_inter_cluster) > 0)
                     inter.cluster.col.names <- input$scaffoldui_markers_inter_cluster
@@ -203,9 +204,9 @@ shinyServer(function(input, output, session) {
             )
 
 
-            if(input$scaffoldui_ew_influence_type == "Fixed")            
+            if(input$scaffoldui_ew_influence_type == "Fixed")
                 args.list <- c(args.list, list(ew.influence = input$scaffoldui_ew_influence))
-            
+
             do.call(vite::run_scaffold_analysis, args.list)
 
             showModal(modalDialog(

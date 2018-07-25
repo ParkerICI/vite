@@ -6,7 +6,8 @@
 \usage{
 get_unsupervised_graph_from_files(files.list, col.names, filtering.threshold,
   metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE,
-  process.clusters.data = TRUE, downsample.to = 1000)
+  process.clusters.data = TRUE, clusters.data.out.dir = "./",
+  downsample.to = 1000)
 }
 \arguments{
 \item{files.list}{The list of files to process. The function will first determine the set of columns that are common to all
@@ -35,6 +36,9 @@ data (i.e. each row represent a cell, as opposed to the files in \code{files.lis
 will be processed using the \code{\link{write_clusters_data}} function. This processing is used for downstream data visualization
 but it is not strictly necessary to create the graph. If \code{use.basename} is \code{TRUE} the \code{basename} of the files in
 \code{files.list} will be used for processing.}
+
+\item{clusters.data.out.dir}{Only used if \code{process.clusters.data == TRUE}. The output directory where the clusters data
+will be written}
 
 \item{downsample.to}{The target number of events for downsampling. Only used if \code{process.clusters.data == TRUE}. This is only
 used for downstream data visualization and does not affect the construction of the graph}

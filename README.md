@@ -94,7 +94,7 @@ vite::vite_GUI()
 
 When the GUI starts you will be prompted to select a working directory. This directory must contain all the files that you want to include in the analysis. Select any file in that directory, and the directory that contains the file will be selected as working directory.
 
-Note that if you are running an unsupervised graph analysis and you are including a file with samples metadata, this file needs to include a column called `filename` that matches the individual rows of the metadata table with the name of the `clustered.txt` files you are using as input for the analysis.
+Note that if you are running an unsupervised graph analysis and you are including a file with samples metadata, this file needs to include a column called `filename` that matches the individual rows of the metadata table with the name of the `clustered.txt` files you are using as input for the analysis. Please refer to the documentation of the R function `get_unsupervised_graph_from_files` for more information about metadata
 
 
 

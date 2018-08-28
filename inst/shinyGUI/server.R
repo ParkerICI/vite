@@ -115,8 +115,10 @@ shinyServer(function(input, output, session) {
             files.list <- file.path(working.directory, input$unsupervisedui_files_list)
             metadata.tab <- NULL
 
-            if(!is.null(input$unsupervisedui_metadata_file) && input$unsupervisedui_metadata_file != "")
-                metadata.tab <- read.table(input$unsupervisedui_metadata_file, header = TRUE, sep = "\t", check.names = FALSE, stringsAsFactors = FALSE)
+            if(!is.null(unsupervisedui.reactive.values$metadata.file) && unsupervisedui.reactive.values$metadata.file != "")
+                metadata.tab <- read.table(unsupervisedui.reactive.values$metadata.file,
+                                            header = TRUE, sep = "\t", check.names = FALSE, stringsAsFactors = FALSE)
+
 
             G <- vite::get_unsupervised_graph_from_files(
                 files.list = files.list,

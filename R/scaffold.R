@@ -44,7 +44,7 @@ downsample_by <- function(tab, col.name, size) {
 load_landmarks <- function(files.list, asinh.cofactor, transform.data, ...) {
     res <- NULL
     for(f in files.list) {
-        population <- tail(strsplit(f, "_")[[1]], n = 1)
+        population <- tail(strsplit(basename(f), "_")[[1]], n = 1)
         population <- gsub(".fcs", "", population)
         fcs <- flowCore::read.FCS(f, ...)
         tab <- grappolo::convert_fcs(fcs, asinh.cofactor, transform.data, clip.at.zero = T)

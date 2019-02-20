@@ -4,8 +4,9 @@
 \alias{get_unsupervised_graph_from_files}
 \title{Builds an unsupervised graph starting from a list of input files}
 \usage{
-get_unsupervised_graph_from_files(files.list, col.names, filtering.threshold,
-  metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE,
+get_unsupervised_graph_from_files(files.list, col.names,
+  filtering.threshold, metadata.tab = NULL,
+  metadata.filename.col = NULL, use.basename = TRUE,
   process.clusters.data = TRUE, clusters.data.out.dir = "./",
   downsample.to = 1000)
 }

@@ -162,7 +162,7 @@ complete_forceatlas2 <- function(G, first.iter = 1000, overlap.method = NULL, ov
                 G <- igraph::set.vertex.attribute(G, name = "y", value = lay[, 2])
             }
         }
-        else if(overlap_method == "expand")
+        else if(overlap.method == "expand")
             G <- adaptive_expand(G, overlap.iter)
     }
     return(G)

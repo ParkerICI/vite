@@ -9,11 +9,12 @@ load_landmarks_from_dir(dir, ...)
 \arguments{
 \item{dir}{A directory name. All the FCS files in the directory will be loaded}
 
-\item{...}{Arguments passed on to \code{load_landmarks}
-\describe{
-  \item{asinh.cofactor}{The cofactor to use for \code{asinh} transformation. If this is \code{NULL} no transformation
+\item{...}{
+  Arguments passed on to \code{\link[=load_landmarks]{load_landmarks}}
+  \describe{
+    \item{\code{asinh.cofactor}}{The cofactor to use for \code{asinh} transformation. If this is \code{NULL} no transformation
 is applied}
-}}
+  }}
 }
 \value{
 Returns a list with the following elements:

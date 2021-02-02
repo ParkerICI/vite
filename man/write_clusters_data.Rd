@@ -4,8 +4,12 @@
 \alias{write_clusters_data}
 \title{Write clustering output}
 \usage{
-write_clusters_data(clustered.data, base.name, output.dir = "./",
-  pooled.only = FALSE)
+write_clusters_data(
+  clustered.data,
+  base.name,
+  output.dir = "./",
+  pooled.only = FALSE
+)
 }
 \arguments{
 \item{clustered.data}{A \code{data.frame} containing the clustered data. Each row corresponds to cell. The \code{data.frame}

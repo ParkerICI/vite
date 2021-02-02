@@ -4,9 +4,16 @@
 \alias{layout_forceatlas2}
 \title{ForceAtlas2 force-directed layout}
 \usage{
-layout_forceatlas2(G, ew.influence = 1, kgrav = 1, iter = 1000,
-  prevent.overlap = FALSE, fixed = NULL, stopping.tolerance = 0.001,
-  barnes.hut = FALSE)
+layout_forceatlas2(
+  G,
+  ew.influence = 1,
+  kgrav = 1,
+  iter = 1000,
+  prevent.overlap = FALSE,
+  fixed = NULL,
+  stopping.tolerance = 0.001,
+  barnes.hut = FALSE
+)
 }
 \arguments{
 \item{G}{The input \code{igraph} object. The graph must have an edge attribute named \code{weight}, representing edge weights}

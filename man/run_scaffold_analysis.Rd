@@ -4,9 +4,16 @@
 \alias{run_scaffold_analysis}
 \title{High level wrapper for performing a Scaffold analysis}
 \usage{
-run_scaffold_analysis(files.list, ref.file, landmarks.data, col.names,
-  out.dir = "scaffold_result", process.clusters.data = TRUE,
-  downsample.to = 1000, ...)
+run_scaffold_analysis(
+  files.list,
+  ref.file,
+  landmarks.data,
+  col.names,
+  out.dir = "scaffold_result",
+  process.clusters.data = TRUE,
+  downsample.to = 1000,
+  ...
+)
 }
 \arguments{
 \item{files.list}{Character vector. The list of files to process}

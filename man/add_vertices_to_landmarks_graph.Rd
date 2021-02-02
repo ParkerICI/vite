@@ -4,8 +4,13 @@
 \alias{add_vertices_to_landmarks_graph}
 \title{Add cluster vertices to a landmark graph}
 \usage{
-add_vertices_to_landmarks_graph(G, tab.clustered, tab.landmarks, col.names,
-  min.similarity = 0.5)
+add_vertices_to_landmarks_graph(
+  G,
+  tab.clustered,
+  tab.landmarks,
+  col.names,
+  min.similarity = 0.5
+)
 }
 \arguments{
 \item{G}{An \code{igraph} object representing the landmark graph}

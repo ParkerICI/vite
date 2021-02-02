@@ -6,6 +6,7 @@
 #' @return Returns a vector of length \code{N} containing the cosine similarity between
 #'   the vector \code{x} and all the rows of \code{m}
 #'
+#' @export
 cosine_similarity_from_matrix <- function(x, m) {
     x <- x / as.vector(sqrt(crossprod(x)))
     return(as.vector((m %*% x) / sqrt(rowSums(m^2))))
@@ -21,6 +22,8 @@ cosine_similarity_from_matrix <- function(x, m) {
 #'
 #' @return Returns an \code{N x N} matrix with the cosine similarity between the corresponding rows in \code{m}
 #'
+#'
+#' @export
 cosine_similarity_matrix <- function(m){
     ret <- m %*% t(m) / (sqrt(rowSums(m^2) %*% t(rowSums(m^2))))
     return(ret)

@@ -4,8 +4,13 @@
 \alias{complete_forceatlas2}
 \title{Performs a Complete cycle of ForceAtlas2}
 \usage{
-complete_forceatlas2(G, first.iter = 1000, overlap.method = NULL,
-  overlap.iter = NULL, ...)
+complete_forceatlas2(
+  G,
+  first.iter = 1000,
+  overlap.method = NULL,
+  overlap.iter = NULL,
+  ...
+)
 }
 \arguments{
 \item{G}{The input graph}

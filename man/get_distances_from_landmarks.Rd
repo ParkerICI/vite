@@ -4,8 +4,7 @@
 \alias{get_distances_from_landmarks}
 \title{Calculate (and filter) disatances between cluster and landmark ondes}
 \usage{
-get_distances_from_landmarks(m, tab, col.names, q.thresh,
-  min.similarity = 0.5)
+get_distances_from_landmarks(m, tab, col.names, q.thresh, min.similarity = 0.5)
 }
 \arguments{
 \item{m}{A \code{data.frame} containing expression values for the cluster nodes}

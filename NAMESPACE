@@ -2,6 +2,8 @@
 
 export(build_graph)
 export(complete_forceatlas2)
+export(cosine_similarity_from_matrix)
+export(cosine_similarity_matrix)
 export(filter_matrix_by_rank)
 export(get_scaffold_map)
 export(get_unsupervised_graph)

@@ -4,8 +4,14 @@
 \alias{write_scaffold_output}
 \title{Write the result of a Scaffold analysis}
 \usage{
-write_scaffold_output(G, out.dir, out.name, clusters.data = NULL,
-  landmarks.data = NULL, downsample.to = 1000)
+write_scaffold_output(
+  G,
+  out.dir,
+  out.name,
+  clusters.data = NULL,
+  landmarks.data = NULL,
+  downsample.to = 1000
+)
 }
 \arguments{
 \item{G}{An \code{igraph} object representing the Scaffold map}

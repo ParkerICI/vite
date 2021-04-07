@@ -66,6 +66,12 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
     return(G)
 }
 
+#' Builds a UMAP graph
+#'
+#' @inheritParams build_graph
+#' @inheritDotParams uwot::umap
+#' @return Returns and \code{igraph} object
+#'
 build_umap_graph <- function(tab, col.names, ...) {
     m <- as.matrix(tab[, col.names])
     row.names(m) <- tab$cellType
@@ -151,6 +157,7 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, method =
 #'   will be written
 #' @param downsample.to The target number of events for downsampling. Only used if \code{process.clusters.data == TRUE}. This is only
 #'   used for downstream data visualization and does not affect the construction of the graph
+#' @param method The method to use. Either build a force-directed layout graph using ForceAtlas2, or alternatively use UMAP
 #'
 #' @return See the return value of \code{get_unsupervised_graph}
 #'

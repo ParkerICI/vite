@@ -7,7 +7,8 @@ Description: This is a package for visualization and analysis of high-dimensiona
     single-cell data using graphs
 Imports:
     Rcpp,
-    igraph
+    igraph,
+    uwot
 Remotes: ParkerICI/grappolo
 LinkingTo: Rcpp
 License: GPL v3

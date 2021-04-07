@@ -13,7 +13,8 @@ get_unsupervised_graph_from_files(
   use.basename = TRUE,
   process.clusters.data = TRUE,
   clusters.data.out.dir = "./",
-  downsample.to = 1000
+  downsample.to = 1000,
+  method = c("forceatlas2", "umap")
 )
 }
 \arguments{

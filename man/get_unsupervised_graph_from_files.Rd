@@ -13,7 +13,8 @@ get_unsupervised_graph_from_files(
   use.basename = TRUE,
   process.clusters.data = TRUE,
   clusters.data.out.dir = "./",
-  downsample.to = 1000
+  downsample.to = 1000,
+  method = c("forceatlas2", "umap")
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ will be written}
 
 \item{downsample.to}{The target number of events for downsampling. Only used if \code{process.clusters.data == TRUE}. This is only
 used for downstream data visualization and does not affect the construction of the graph}
+
+\item{method}{The method to use. Either build a force-directed layout graph using ForceAtlas2, or alternatively use UMAP}
 }
 \value{
 See the return value of \code{get_unsupervised_graph}

@@ -57,13 +57,39 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
 
     G <- igraph::graph.adjacency(dd, mode = "undirected", weighted = T)
 
-    for(i in names(tab))
-        G <- igraph::set.vertex.attribute(G, name = i, value = tab[, i])
+    message("Running ForceAtlas2...")
+    flush.console()
+    G <- complete_forceatlas2(G, first.iter = 50000, overlap.method = NULL, ew.influence = 5)
+    message("ForceAtlas2 done")
+    flush.console()
 
     return(G)
 }
 
+#' Builds a UMAP graph
+#'
+#' @inheritParams build_graph
+#' @inheritDotParams uwot::umap
+#' @return Returns and \code{igraph} object
+#'
+build_umap_graph <- function(tab, col.names, ...) {
+    m <- as.matrix(tab[, col.names])
+    row.names(m) <- tab$cellType
 
+    umap.init <- uwot::umap(m, n_neighbors = 15, ret_extra = c("fgraph", "nn"), metric = "cosine", n_epochs = 0)
+
+    message("Running UMAP...")
+    flush.console()
+    umap.res <- uwot::umap(m, n_neighbors = 15, metric = "cosine", nn_method = umap.init$nn$cosine)
+    message("UMAP done")
+    flush.console()
+
+    G <- igraph::graph.adjacency(umap.init$fgraph, mode = "undirected", weighted = T)
+    V(G)$x <- umap.res[, 1]
+    V(G)$y <- umap.res[, 2]
+
+    return(G)
+}
 
 
 
@@ -76,10 +102,17 @@ build_graph <- function(tab, col.names, filtering_T = 0.8) {
 #'   is contained in the \code{community_id} vertex attribute of the resulting graph
 #'
 #' @export
-get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
+get_unsupervised_graph <- function(tab, col.names, filtering.threshold, method = c("forceatlas2", "umap")) {
+    method <- match.arg(method)
     message("Building graph...")
     flush.console()
-    G <- build_graph(tab, col.names, filtering_T = filtering.threshold)
+
+    G <- NULL
+
+    if(method == "forceatlas2")
+        G <- build_graph(tab, col.names, filtering_T = filtering.threshold)
+    else if(method == "umap")
+        G <- build_umap_graph(tab, col.names)
 
     for(i in names(tab))
         G <- igraph::set.vertex.attribute(G, name = i, value = tab[, i])
@@ -89,12 +122,6 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
     V(G)$name <- seq_along(V(G)$name)
     V(G)$type <- "cluster"
     V(G)$Label <- paste("c", V(G)$cellType, sep = "")
-
-    message("Running ForceAtlas2...")
-    flush.console()
-    G <- complete_forceatlas2(G, first.iter = 50000, overlap.method = NULL, ew.influence = 5)
-    message("ForceAtlas2 done")
-    flush.console()
 
     return(G)
 }
@@ -130,13 +157,14 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold) {
 #'   will be written
 #' @param downsample.to The target number of events for downsampling. Only used if \code{process.clusters.data == TRUE}. This is only
 #'   used for downstream data visualization and does not affect the construction of the graph
+#' @param method The method to use. Either build a force-directed layout graph using ForceAtlas2, or alternatively use UMAP
 #'
 #' @return See the return value of \code{get_unsupervised_graph}
 #'
 #' @export
 get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.threshold,
                                         metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE, process.clusters.data = TRUE,
-                                        clusters.data.out.dir = "./", downsample.to = 1000) {
+                                        clusters.data.out.dir = "./", downsample.to = 1000, method = c("forceatlas2", "umap")) {
     if(!is.null(metadata.tab) && c("sample", "name", "Label", "type") %in% names(metadata.tab))
         stop("Metadata column names cannot include sample, name, Label or type")
 
@@ -162,7 +190,7 @@ get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.t
         tab <- rbind(tab, temp)
     }
 
-    G <- get_unsupervised_graph(tab, col.names, filtering.threshold)
+    G <- get_unsupervised_graph(tab, col.names, filtering.threshold, method = method)
 
     if(process.clusters.data) {
         message("Processing clusters data...")

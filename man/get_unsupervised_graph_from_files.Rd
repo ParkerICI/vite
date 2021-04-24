@@ -14,7 +14,8 @@ get_unsupervised_graph_from_files(
   process.clusters.data = TRUE,
   clusters.data.out.dir = "./",
   downsample.to = 1000,
-  method = c("forceatlas2", "umap")
+  method = c("forceatlas2", "umap"),
+  ...
 )
 }
 \arguments{
@@ -52,6 +53,9 @@ will be written}
 used for downstream data visualization and does not affect the construction of the graph}
 
 \item{method}{The method to use. Either build a force-directed layout graph using ForceAtlas2, or alternatively use UMAP}
+
+\item{...}{Additional argument passed to \link{build_graph} or \link{build_umap_graph} depending
+on the choice of method}
 }
 \value{
 See the return value of \code{get_unsupervised_graph}

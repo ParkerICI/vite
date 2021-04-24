@@ -10,6 +10,8 @@
 #'   available for a particular value, all rows for that value will be returned
 #' @return Returns a \code{data.frame}
 #'
+#' @export
+#'
 downsample_by <- function(tab, col.name, size) {
     return(plyr::ddply(tab, col.name, function(x, size) {
         if(nrow(x) <= size)

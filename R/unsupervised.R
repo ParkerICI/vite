@@ -97,12 +97,13 @@ build_umap_graph <- function(tab, col.names, ...) {
 #'
 #' @inheritParams build_graph
 #' @param filtering.threshold The threshold used to filter edges in the graph
-#'
+#' @param ... Additional argument passed to \link{build_graph} or \link{build_umap_graph} depending
+#'   on the choice of method
 #' @return Returns an \code{igraph} graph object. This function also performs graph-based clustering. The resulting cluster membership
 #'   is contained in the \code{community_id} vertex attribute of the resulting graph
 #'
 #' @export
-get_unsupervised_graph <- function(tab, col.names, filtering.threshold, method = c("forceatlas2", "umap")) {
+get_unsupervised_graph <- function(tab, col.names, filtering.threshold, method = c("forceatlas2", "umap"), ...) {
     method <- match.arg(method)
     message("Building graph...")
     flush.console()
@@ -164,7 +165,7 @@ get_unsupervised_graph <- function(tab, col.names, filtering.threshold, method =
 #' @export
 get_unsupervised_graph_from_files <- function(files.list, col.names, filtering.threshold,
                                         metadata.tab = NULL, metadata.filename.col = NULL, use.basename = TRUE, process.clusters.data = TRUE,
-                                        clusters.data.out.dir = "./", downsample.to = 1000, method = c("forceatlas2", "umap")) {
+                                        clusters.data.out.dir = "./", downsample.to = 1000, method = c("forceatlas2", "umap"), ...) {
     if(!is.null(metadata.tab) && c("sample", "name", "Label", "type") %in% names(metadata.tab))
         stop("Metadata column names cannot include sample, name, Label or type")
 

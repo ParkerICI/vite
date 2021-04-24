@@ -8,7 +8,8 @@ get_unsupervised_graph(
   tab,
   col.names,
   filtering.threshold,
-  method = c("forceatlas2", "umap")
+  method = c("forceatlas2", "umap"),
+  ...
 )
 }
 \arguments{
@@ -17,6 +18,9 @@ get_unsupervised_graph(
 \item{col.names}{A character vector indicating which columns of \code{tab} should be used to calculate distances}
 
 \item{filtering.threshold}{The threshold used to filter edges in the graph}
+
+\item{...}{Additional argument passed to \link{build_graph} or \link{build_umap_graph} depending
+on the choice of method}
 }
 \value{
 Returns an \code{igraph} graph object. This function also performs graph-based clustering. The resulting cluster membership

@@ -327,7 +327,8 @@ get_highest_scoring_edges <- function(G) {
 #'
 #' @export
 get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmarks = NULL, ew.influence = ceiling(length(col.names) / 3),
-                             min.similarity = 0.5, inter.cluster.col.names = col.names, inter.cluster.weight.factor = 0.7, overlap.method = "repel") {
+                             min.similarity = 0.5, inter.cluster.col.names = col.names, inter.cluster.weight.factor = 0.7, overlap.method = "repel",
+                             overwrite.names = TRUE) {
 
     message(sprintf("Running with Edge weight: %f", ew.influence))
     flush.console()
@@ -371,8 +372,26 @@ get_scaffold_map <- function(tab.clustered, col.names, tab.landmarks, G.landmark
     }
 
     G.complete <- get_highest_scoring_edges(G.complete)
-    G.complete <- add_landmarks_labels(G.complete)
-    V(G.complete)$name <- gsub(".fcs", "", V(G.complete)$name)
+
+    if (overwrite.names){
+        G.complete <- add_landmarks_labels(G.complete)
+        V(G.complete)$name <- gsub(".fcs", "", V(G.complete)$name)
+
+    } else {
+        # Fix cellType if it's not been correctly labeled
+        NAtypes <- is.na(V(G.complete)$cellType)
+        V(G.complete)$cellType[NAtypes]<-V(G.complete)$name[NAtypes]
+
+        # Fix label if it's not been correctly labeled
+        NAlabels <- is.na(V(G.complete)$Label)
+        V(G.complete)$Label[NAtypes] <- V(G.complete)$name[NAlabels]
+
+        # Give each name a unique (number)
+        V(G.complete)$name <- paste(1:length(NAtypes))
+
+    }
+
+
     return(list(G.landmarks = G.landmarks, G.complete = G.complete))
 }
 
@@ -463,7 +482,10 @@ write_landmarks_data <- function(landmarks.data, out.dir, downsample.to = 1000) 
 #' @param ... Additional parameters passed to \code{\link{get_scaffold_map}}
 #'
 #' @export
-run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.names, out.dir = "scaffold_result", process.clusters.data = TRUE, downsample.to = 1000, ...) {
+run_scaffold_analysis <- function(files.list, ref.file, landmarks.data,
+                                  col.names,out.dir = "scaffold_result",
+                                  process.clusters.data = TRUE,
+                                  downsample.to = 1000,overwrite.names=TRUE, ...) {
     G.landmarks <- NULL
     # Put the ref.file in the first position
     files.list <- files.list[files.list != ref.file]
@@ -472,11 +494,17 @@ run_scaffold_analysis <- function(files.list, ref.file, landmarks.data, col.name
     for(f in files.list) {
         message(paste("Processing", f, sep = " "))
         flush.console()
-        tab <- read.table(f, header = T, sep = "\t", quote = "", check.names = F, comment.char = "", stringsAsFactors = F)
+        tab <- read.table(f, header = T, sep = "\t", stringsAsFactors = F)
+
+        good.cols <- col.names[col.names %in% colnames(tab)]
+        if (length(good.cols)<length(col.names)){
+            warning('Some channels requested were not present in the clustering file. Double check names.')
+            col.names<-good.cols
+        }
 
         tab <- tab[!apply(tab[, col.names], 1, function(x) {all(x == 0)}),]
 
-        scaffold.res <- get_scaffold_map(tab, col.names, landmarks.data$tab.landmarks, G.landmarks, ...)
+        scaffold.res <- get_scaffold_map(tab, col.names, landmarks.data$tab.landmarks, G.landmarks,overwrite.names=overwrite.names, ...)
 
         out.name <- gsub(".clustered.txt", "", basename(f))
 

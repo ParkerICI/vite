@@ -494,7 +494,13 @@ run_scaffold_analysis <- function(files.list, ref.file, landmarks.data,
     for(f in files.list) {
         message(paste("Processing", f, sep = " "))
         flush.console()
-        tab <- read.table(f, header = T, sep = "\t", quote = "", check.names = F, comment.char = "", stringsAsFactors = F)
+        tab <- read.table(f, header = T, sep = "\t", stringsAsFactors = F)
+
+        good.cols <- col.names[col.names %in% colnames(tab)]
+        if (length(good.cols)<length(col.names)){
+            warning('Some channels requested were not present in the clustering file. Double check names.')
+            col.names<-good.cols
+        }
 
         tab <- tab[!apply(tab[, col.names], 1, function(x) {all(x == 0)}),]
 
